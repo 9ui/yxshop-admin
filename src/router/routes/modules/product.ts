@@ -3,30 +3,30 @@ import type { AppRouteModule } from '/@/router/types';
 import { LAYOUT } from '/@/router/constant';
 
 const product: AppRouteModule = {
-  path: '/post',
-  name: 'POst',
+  path: '/product',
+  name: 'Product',
   component: LAYOUT,
-  redirect: '/post/postCategory',
+  redirect: '/product/postCategory',
   meta: {
     icon: 'ion:list-outline',
-    title: '商品分类',
+    title: '商品管理',
   },
   children: [
     {
       path: 'category',
       name: 'postCategory',
-      component: () => import('/@/views/post/category/index.vue'),
+      component: () => import('/@/views/product/category/index.vue'),
       meta: {
-        title: '文章分类',
+        title: '商品分类',
         icon: 'bx:bx-home',
       },
     },
     {
       path: 'manage',
       name: 'ManagePost',
-      component: () => import('/@/views/post/manage/index.vue'),
+      component: () => import('/@/views/product/manage/index.vue'),
       meta: {
-        title: '管理文章',
+        title: '商品管理',
         icon: 'bx:bx-home',
       },
     },

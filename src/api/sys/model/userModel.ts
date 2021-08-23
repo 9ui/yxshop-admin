@@ -9,8 +9,8 @@ export interface LoginParams {
 /**
  * @description: Get user information
  */
-export interface GetUserInfoByUserIdParams {
-  userId: string | number;
+export interface GetUserInfoByTokenParams {
+  authorization: string;
 }
 
 export interface RoleInfo {

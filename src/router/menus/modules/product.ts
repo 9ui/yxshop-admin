@@ -3,8 +3,8 @@ import type { MenuModule } from '/@/router/types';
 const menu: MenuModule = {
   orderNo: 2,
   menu: {
-    name: '文章管理',
-    path: '/post',
+    name: '商品管理',
+    path: '/product',
     children: [
       {
         path: 'category',
@@ -12,7 +12,7 @@ const menu: MenuModule = {
       },
       {
         path: 'manage',
-        name: '文章管理',
+        name: '商品管理',
       },
     ],
   },
