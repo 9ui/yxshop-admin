@@ -1,10 +1,10 @@
 # 该workflow的名称，可以随意填写
-name: release
+name: develop
 
 # workflow的触发事件，这里代表release分支的push事件触发
 on:
   push:
-    branches: [release]
+    branches: [develop]
 
 # 任务
 jobs:
@@ -90,7 +90,7 @@ jobs:
           # 命令超时配置 默认10m
           command_timeout: 20m
           script: |
-            cd /www/wwwroot/blog-admin.90c.vip
+            cd /www/wwwroot/yx-admin.90c.vip
             tar zxvf dist.tgz
 
       # Notify
