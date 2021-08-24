@@ -49,6 +49,7 @@
         getAccordion,
         getIsHorizontal,
         getIsSidebarType,
+        getSplit,
       } = useMenuSetting();
       const { getShowLogo } = useRootSetting();
 
@@ -75,13 +76,11 @@
         );
       });
 
-      const getWrapperStyle = computed(
-        (): CSSProperties => {
-          return {
-            height: `calc(100% - ${unref(getIsShowLogo) ? '48px' : '0px'})`,
-          };
-        }
-      );
+      const getWrapperStyle = computed((): CSSProperties => {
+        return {
+          height: `calc(100% - ${unref(getIsShowLogo) ? '48px' : '0px'})`,
+        };
+      });
 
       const getLogoClass = computed(() => {
         return [
@@ -91,6 +90,20 @@
             [`${prefixCls}--mobile`]: unref(getIsMobile),
           },
         ];
+      });
+
+      const getCommonProps = computed(() => {
+        const menus = unref(menusRef);
+        return {
+          menus,
+          beforeClickFn: beforeMenuClickFn,
+          items: menus,
+          theme: unref(getComputedMenuTheme),
+          accordion: unref(getAccordion),
+          collapse: unref(getCollapsed),
+          collapsedShowTitle: unref(getCollapsedShowTitle),
+          onMenuClick: handleMenuClick,
+        };
       });
       /**
        * click menu
@@ -126,31 +139,19 @@
       }
 
       function renderMenu() {
-        const menus = unref(menusRef);
+        const { menus, ...menuProps } = unref(getCommonProps);
         // console.log(menus);
         if (!menus || !menus.length) return null;
         return !props.isHorizontal ? (
-          <SimpleMenu
-            beforeClickFn={beforeMenuClickFn}
-            items={menus}
-            theme={unref(getComputedMenuTheme)}
-            accordion={unref(getAccordion)}
-            collapse={unref(getCollapsed)}
-            collapsedShowTitle={unref(getCollapsedShowTitle)}
-            onMenuClick={handleMenuClick}
-          />
+          <SimpleMenu {...menuProps} isSplitMenu={unref(getSplit)} items={menus} />
         ) : (
           <BasicMenu
-            beforeClickFn={beforeMenuClickFn}
+            {...(menuProps as any)}
             isHorizontal={props.isHorizontal}
             type={unref(getMenuType)}
-            collapsedShowTitle={unref(getCollapsedShowTitle)}
             showLogo={unref(getIsShowLogo)}
-            mode={unref(getComputedMenuMode)}
-            theme={unref(getComputedMenuTheme)}
+            mode={unref(getComputedMenuMode as any)}
             items={menus}
-            accordion={unref(getAccordion)}
-            onMenuClick={handleMenuClick}
           />
         );
       }

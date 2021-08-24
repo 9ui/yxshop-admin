@@ -1,6 +1,12 @@
 <template>
-  <Form v-bind="{ ...$attrs, ...$props }" :class="getFormClass" ref="formElRef" :model="formModel">
-    <Row :style="getRowWrapStyle">
+  <Form
+    v-bind="getBindValue"
+    :class="getFormClass"
+    ref="formElRef"
+    :model="formModel"
+    @keypress.enter="handleEnterPress"
+  >
+    <Row v-bind="getRow">
       <slot name="formHeader"></slot>
       <template v-for="schema in getSchema" :key="schema.field">
         <FormItem
@@ -13,17 +19,17 @@
           :setFormModel="setFormModel"
         >
           <template #[item]="data" v-for="item in Object.keys($slots)">
-            <slot :name="item" v-bind="data"></slot>
+            <slot :name="item" v-bind="data || {}"></slot>
           </template>
         </FormItem>
       </template>
 
-      <FormAction v-bind="{ ...getProps, ...advanceState }" @toggle-advanced="handleToggleAdvanced">
+      <FormAction v-bind="getFormActionBindProps" @toggle-advanced="handleToggleAdvanced">
         <template
           #[item]="data"
           v-for="item in ['resetBefore', 'submitBefore', 'advanceBefore', 'advanceAfter']"
         >
-          <slot :name="item" v-bind="data"></slot>
+          <slot :name="item" v-bind="data || {}"></slot>
         </template>
       </FormAction>
       <slot name="formFooter"></slot>
@@ -33,21 +39,11 @@
 <script lang="ts">
   import type { FormActionType, FormProps, FormSchema } from './types/form';
   import type { AdvanceState } from './types/hooks';
-  import type { CSSProperties, Ref } from 'vue';
+  import type { Ref } from 'vue';
 
-  import {
-    defineComponent,
-    reactive,
-    ref,
-    computed,
-    unref,
-    onMounted,
-    watch,
-    toRefs,
-    nextTick,
-  } from 'vue';
+  import { defineComponent, reactive, ref, computed, unref, onMounted, watch, nextTick } from 'vue';
   import { Form, Row } from 'ant-design-vue';
-  import FormItem from './components/FormItem';
+  import FormItem from './components/FormItem.vue';
   import FormAction from './components/FormAction.vue';
 
   import { dateItemType } from './helper';
@@ -71,7 +67,7 @@
     components: { FormItem, Form, Row, FormAction },
     props: basicProps,
     emits: ['advanced-change', 'reset', 'submit', 'register'],
-    setup(props, { emit }) {
+    setup(props, { emit, attrs }) {
       const formModel = reactive<Recordable>({});
       const modalFn = useModalContext();
 
@@ -91,11 +87,9 @@
       const { prefixCls } = useDesign('basic-form');
 
       // Get the basic configuration of the form
-      const getProps = computed(
-        (): FormProps => {
-          return { ...props, ...unref(propsRef) } as FormProps;
-        }
-      );
+      const getProps = computed((): FormProps => {
+        return { ...props, ...unref(propsRef) } as FormProps;
+      });
 
       const getFormClass = computed(() => {
         return [
@@ -106,12 +100,17 @@
         ];
       });
 
-      // Get uniform row style
-      const getRowWrapStyle = computed(
-        (): CSSProperties => {
-          const { baseRowStyle = {} } = unref(getProps);
-          return baseRowStyle;
-        }
+      // Get uniform row style and Row configuration for the entire form
+      const getRow = computed((): Recordable => {
+        const { baseRowStyle = {}, rowProps } = unref(getProps);
+        return {
+          style: baseRowStyle,
+          ...rowProps,
+        };
+      });
+
+      const getBindValue = computed(
+        () => ({ ...attrs, ...props, ...unref(getProps) } as Recordable)
       );
 
       const getSchema = computed((): FormSchema[] => {
@@ -131,7 +130,11 @@
             }
           }
         }
-        return schemas as FormSchema[];
+        if (unref(getProps).showAdvancedButton) {
+          return schemas.filter((schema) => schema.component !== 'Divider') as FormSchema[];
+        } else {
+          return schemas as FormSchema[];
+        }
       });
 
       const { handleToggleAdvanced } = useAdvanced({
@@ -143,11 +146,8 @@
         defaultValueRef,
       });
 
-      const { transformDateFunc, fieldMapToTime, autoFocusFirstItem } = toRefs(props);
-
       const { handleFormValues, initDefault } = useFormValues({
-        transformDateFuncRef: transformDateFunc,
-        fieldMapToTimeRef: fieldMapToTime,
+        getProps,
         defaultValueRef,
         getSchema,
         formModel,
@@ -155,7 +155,7 @@
 
       useAutoFocus({
         getSchema,
-        autoFocusFirstItem,
+        getProps,
         isInitedDefault: isInitedDefaultRef,
         formElRef: formElRef as Ref<FormActionType>,
       });
@@ -168,6 +168,7 @@
         validateFields,
         getFieldsValue,
         updateSchema,
+        resetSchema,
         appendSchemaByField,
         removeSchemaByFiled,
         resetFields,
@@ -201,6 +202,13 @@
       );
 
       watch(
+        () => unref(getProps).schemas,
+        (schemas) => {
+          resetSchema(schemas ?? []);
+        }
+      );
+
+      watch(
         () => getSchema.value,
         (schema) => {
           nextTick(() => {
@@ -223,6 +231,21 @@
 
       function setFormModel(key: string, value: any) {
         formModel[key] = value;
+        const { validateTrigger } = unref(getBindValue);
+        if (!validateTrigger || validateTrigger === 'change') {
+          validateFields([key]).catch((_) => {});
+        }
+      }
+
+      function handleEnterPress(e: KeyboardEvent) {
+        const { autoSubmitOnEnter } = unref(getProps);
+        if (!autoSubmitOnEnter) return;
+        if (e.key === 'Enter' && e.target && e.target instanceof HTMLElement) {
+          const target: HTMLElement = e.target as HTMLElement;
+          if (target && target.tagName && target.tagName.toUpperCase() == 'INPUT') {
+            handleSubmit();
+          }
+        }
       }
 
       const formActionType: Partial<FormActionType> = {
@@ -230,6 +253,7 @@
         setFieldsValue,
         resetFields,
         updateSchema,
+        resetSchema,
         setProps,
         removeSchemaByFiled,
         appendSchemaByField,
@@ -246,18 +270,22 @@
       });
 
       return {
+        getBindValue,
         handleToggleAdvanced,
+        handleEnterPress,
         formModel,
         defaultValueRef,
         advanceState,
-        getRowWrapStyle,
+        getRow,
         getProps,
         formElRef,
         getSchema,
-        formActionType,
+        formActionType: formActionType as any,
         setFormModel,
-        prefixCls,
         getFormClass,
+        getFormActionBindProps: computed(
+          (): Recordable => ({ ...getProps.value, ...advanceState })
+        ),
         ...formActionType,
       };
     },
@@ -285,9 +313,16 @@
           display: flex;
         }
 
+        .ant-form-item-control {
+          margin-top: 4px;
+        }
+
         .suffix {
-          display: inline-block;
+          display: inline-flex;
           padding-left: 6px;
+          margin-top: 1px;
+          line-height: 1;
+          align-items: center;
         }
       }
     }

@@ -1,2 +1,4 @@
-import { createAsyncComponent } from '/@/utils/factory/createAsyncComponent';
-export const Tinymce = createAsyncComponent(() => import('./src/Editor.vue'));
+import { withInstall } from '/@/utils/index';
+import tinymce from './src/Editor.vue';
+
+export const Tinymce = withInstall(tinymce);

@@ -1,11 +1,15 @@
-import { createAsyncComponent } from '/@/utils/factory/createAsyncComponent';
-import AppLogo from './src/AppLogo.vue';
-import AppProvider from './src/AppProvider.vue';
+import { withInstall } from '/@/utils';
 
-export const AppLocalePicker = createAsyncComponent(() => import('./src/AppLocalePicker.vue'));
-export const AppSearch = createAsyncComponent(() => import('./src/search/AppSearch.vue'), {
-  loading: true,
-});
+import appLogo from './src/AppLogo.vue';
+import appProvider from './src/AppProvider.vue';
+import appSearch from './src/search/AppSearch.vue';
+import appLocalePicker from './src/AppLocalePicker.vue';
+import appDarkModeToggle from './src/AppDarkModeToggle.vue';
 
 export { useAppProviderContext } from './src/useAppContext';
-export { AppLogo, AppProvider };
+
+export const AppLogo = withInstall(appLogo);
+export const AppProvider = withInstall(appProvider);
+export const AppSearch = withInstall(appSearch);
+export const AppLocalePicker = withInstall(appLocalePicker);
+export const AppDarkModeToggle = withInstall(appDarkModeToggle);

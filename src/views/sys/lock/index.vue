@@ -3,22 +3,11 @@
     <LockPage v-if="getIsLock" />
   </transition>
 </template>
-<script lang="ts">
-  import { defineComponent, computed } from 'vue';
+<script lang="ts" setup>
+  import { computed } from 'vue';
   import LockPage from './LockPage.vue';
+  import { useLockStore } from '/@/store/modules/lock';
 
-  import { lockStore } from '/@/store/modules/lock';
-  export default defineComponent({
-    name: 'Lock',
-    components: { LockPage },
-    setup() {
-      const getIsLock = computed(() => {
-        const { getLockInfo } = lockStore;
-        const { isLock } = getLockInfo;
-        return isLock;
-      });
-
-      return { getIsLock };
-    },
-  });
+  const lockStore = useLockStore();
+  const getIsLock = computed(() => lockStore?.getLockInfo?.isLock ?? false);
 </script>

@@ -9,11 +9,11 @@
           :class="`${prefixCls}-submenu-title-icon`"
         />
       </div>
-      <MenuCollapseTransition>
+      <CollapseTransition>
         <ul :class="prefixCls" v-show="opened">
           <slot></slot>
         </ul>
-      </MenuCollapseTransition>
+      </CollapseTransition>
     </template>
 
     <Popover
@@ -43,6 +43,7 @@
           :class="`${prefixCls}-submenu-title-icon`"
         />
       </div>
+      <!-- eslint-disable-next-line -->
       <template #content v-show="opened">
         <div v-bind="getEvents(true)">
           <ul :class="[prefixCls, `${prefixCls}-${getTheme}`, `${prefixCls}-popup`]">
@@ -72,18 +73,18 @@
   import { propTypes } from '/@/utils/propTypes';
   import { useMenuItem } from './useMenu';
   import { useSimpleRootMenuContext } from './useSimpleMenuContext';
-  import MenuCollapseTransition from './MenuCollapseTransition.vue';
+  import { CollapseTransition } from '/@/components/Transition';
   import Icon from '/@/components/Icon';
   import { Popover } from 'ant-design-vue';
   import { isBoolean, isObject } from '/@/utils/is';
-  import Mitt from '/@/utils/mitt';
+  import mitt from '/@/utils/mitt';
 
   const DELAY = 200;
   export default defineComponent({
     name: 'SubMenu',
     components: {
       Icon,
-      MenuCollapseTransition,
+      CollapseTransition,
       Popover,
     },
     props: {
@@ -108,13 +109,12 @@
         isChild: false,
       });
 
-      const { getParentSubMenu, getItemStyle, getParentMenu, getParentList } = useMenuItem(
-        instance
-      );
+      const { getParentSubMenu, getItemStyle, getParentMenu, getParentList } =
+        useMenuItem(instance);
 
       const { prefixCls } = useDesign('menu');
 
-      const subMenuEmitter = new Mitt();
+      const subMenuEmitter = mitt();
 
       const { rootMenuEmitter } = useSimpleRootMenuContext();
 
@@ -147,13 +147,11 @@
       const getCollapse = computed(() => rootProps.collapse);
       const getTheme = computed(() => rootProps.theme);
 
-      const getOverlayStyle = computed(
-        (): CSSProperties => {
-          return {
-            minWidth: '200px',
-          };
-        }
-      );
+      const getOverlayStyle = computed((): CSSProperties => {
+        return {
+          minWidth: '200px',
+        };
+      });
 
       const getIsOpend = computed(() => {
         const name = props.name;
@@ -189,12 +187,18 @@
         const { disabled } = props;
         if (disabled || unref(getCollapse)) return;
         const opened = state.opened;
+
         if (unref(getAccordion)) {
           const { uidList } = getParentList();
           rootMenuEmitter.emit('on-update-opened', {
             opend: false,
             parent: instance?.parent,
             uidList: uidList,
+          });
+        } else {
+          rootMenuEmitter.emit('open-name-change', {
+            name: props.name,
+            opened: !opened,
           });
         }
         state.opened = !opened;
@@ -269,8 +273,7 @@
               state.opened = data;
               return;
             }
-
-            if (isObject(data)) {
+            if (isObject(data) && rootProps.accordion) {
               const { opend, parent, uidList } = data as Recordable;
               if (parent === instance?.parent) {
                 state.opened = opend;

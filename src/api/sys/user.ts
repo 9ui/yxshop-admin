@@ -1,20 +1,17 @@
 import { defHttp } from '/@/utils/http/axios';
-import {
-  LoginParams,
-  LoginResultModel,
-  GetUserInfoByTokenParams,
-  GetUserInfoByUserIdModel,
-} from './model/userModel';
-import { ErrorMessageMode } from '/@/utils/http/axios/types';
+import { LoginParams, LoginResultModel, GetUserInfoModel } from './model/userModel';
+
+import { ErrorMessageMode } from '/#/axios';
 
 enum Api {
-  Login = '/sys/login',
-  getUserInfoByToken = '/sys/getUserInfo',
-  GetPermCodeByUserId = '/getPermCodeByUserId',
+  Login = '/login',
+  Logout = '/logout',
+  GetUserInfo = '/getUserInfo',
+  GetPermCode = '/getPermCode',
 }
 
 /**
- * @description: 用户登陆
+ * @description: user login api
  */
 export function loginApi(params: LoginParams, mode: ErrorMessageMode = 'modal') {
   return defHttp.post<LoginResultModel>(
@@ -29,19 +26,16 @@ export function loginApi(params: LoginParams, mode: ErrorMessageMode = 'modal') 
 }
 
 /**
- * @description: 请求用户信息
- * @param {params.authorization}  token信息
+ * @description: getUserInfo
  */
-export function getUserInfoByToken(params: GetUserInfoByTokenParams) {
-  return defHttp.get<GetUserInfoByUserIdModel>({
-    url: Api.getUserInfoByToken,
-    headers: { 'Content-Type': 'application/json', params },
-  });
+export function getUserInfo() {
+  return defHttp.get<GetUserInfoModel>({ url: Api.GetUserInfo });
 }
 
-export function getPermCodeByUserId(params: GetUserInfoByTokenParams) {
-  return defHttp.get<string[]>({
-    url: Api.GetPermCodeByUserId,
-    params,
-  });
+export function getPermCode() {
+  return defHttp.get<string[]>({ url: Api.GetPermCode });
+}
+
+export function doLogout() {
+  return defHttp.get({ url: Api.Logout });
 }

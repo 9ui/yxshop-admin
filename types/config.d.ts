@@ -5,10 +5,10 @@ import {
   ThemeEnum,
   RouterTransitionEnum,
   SettingButtonPositionEnum,
+  SessionTimeoutProcessingEnum,
 } from '/@/enums/appEnum';
 
 import { CacheTypeEnum } from '/@/enums/cacheEnum';
-import { ThemeMode } from '../build/config/themeConfig';
 
 export type LocaleType = 'zh_CN' | 'en' | 'ru' | 'ja' | 'ko';
 
@@ -34,6 +34,7 @@ export interface MenuSetting {
 }
 
 export interface MultiTabsSetting {
+  cache: boolean;
   show: boolean;
   showQuick: boolean;
   canDrag: boolean;
@@ -83,10 +84,14 @@ export interface ProjectConfig {
   permissionCacheType: CacheTypeEnum;
   // Whether to show the configuration button
   showSettingButton: boolean;
+  // Whether to show the theme switch button
+  showDarkModeToggle: boolean;
   // Configure where the button is displayed
   settingButtonPosition: SettingButtonPositionEnum;
   // Permission mode
   permissionMode: PermissionModeEnum;
+  // Session timeout processing
+  sessionTimeoutProcessing: SessionTimeoutProcessingEnum;
   // Website gray mode, open for possible mourning dates
   grayMode: boolean;
   // Whether to turn on the color weak mode
@@ -94,7 +99,6 @@ export interface ProjectConfig {
   // Theme color
   themeColor: string;
 
-  themeMode: ThemeMode;
   // The main interface is displayed in full screen, the menu is not displayed, and the top
   fullContent: boolean;
   // content width
@@ -143,7 +147,6 @@ export interface GlobConfig {
   // Project abbreviation
   shortName: string;
 }
-
 export interface GlobEnvConfig {
   // Site title
   VITE_GLOB_APP_TITLE: string;

@@ -1,6 +1,12 @@
 <template>
-  <div :class="getClass">
-    <PageHeader :ghost="ghost" v-bind="$attrs" ref="headerRef">
+  <div :class="getClass" ref="wrapperRef">
+    <PageHeader
+      :ghost="ghost"
+      :title="title"
+      v-bind="omit($attrs, 'class')"
+      ref="headerRef"
+      v-if="content || $slots.headerContent || title || getHeaderSlots.length"
+    >
       <template #default>
         <template v-if="content">
           {{ content }}
@@ -8,12 +14,14 @@
         <slot name="headerContent" v-else></slot>
       </template>
       <template #[item]="data" v-for="item in getHeaderSlots">
-        <slot :name="item" v-bind="data"></slot>
+        <slot :name="item" v-bind="data || {}"></slot>
       </template>
     </PageHeader>
-    <div :class="[`${prefixCls}-content`, $attrs.contentClass]" :style="getContentStyle">
+
+    <div class="overflow-hidden" :class="getContentClass" :style="getContentStyle" ref="contentRef">
       <slot></slot>
     </div>
+
     <PageFooter v-if="getShowFooter" ref="footerRef">
       <template #left>
         <slot name="leftFooter"></slot>
@@ -25,20 +33,24 @@
   </div>
 </template>
 <script lang="ts">
-  import type { CSSProperties, PropType } from 'vue';
+  import { CSSProperties, PropType, provide } from 'vue';
 
-  import { defineComponent, computed, watch, nextTick, ref, unref } from 'vue';
+  import { defineComponent, computed, watch, ref, unref } from 'vue';
   import PageFooter from './PageFooter.vue';
-  import { usePageContext } from '/@/hooks/component/usePageContext';
 
   import { useDesign } from '/@/hooks/web/useDesign';
   import { propTypes } from '/@/utils/propTypes';
   import { omit } from 'lodash-es';
   import { PageHeader } from 'ant-design-vue';
+  import { useContentHeight } from '/@/hooks/web/useContentHeight';
+  import { PageWrapperFixedHeightKey } from '..';
+
   export default defineComponent({
     name: 'PageWrapper',
     components: { PageFooter, PageHeader },
+    inheritAttrs: false,
     props: {
+      title: propTypes.string,
       dense: propTypes.bool,
       ghost: propTypes.bool,
       content: propTypes.string,
@@ -47,13 +59,32 @@
       },
       contentBackground: propTypes.bool,
       contentFullHeight: propTypes.bool,
+      contentClass: propTypes.string,
+      fixedHeight: propTypes.bool,
     },
-    setup(props, { slots }) {
-      const headerRef = ref<ComponentRef>(null);
-      const footerRef = ref<ComponentRef>(null);
-      const footerHeight = ref(0);
+    setup(props, { slots, attrs }) {
+      const wrapperRef = ref(null);
+      const headerRef = ref(null);
+      const contentRef = ref(null);
+      const footerRef = ref(null);
       const { prefixCls } = useDesign('page-wrapper');
-      const { contentHeight, setPageHeight, pageHeight } = usePageContext();
+
+      provide(
+        PageWrapperFixedHeightKey,
+        computed(() => props.fixedHeight)
+      );
+
+      const getIsContentFullHeight = computed(() => {
+        return props.contentFullHeight;
+      });
+
+      const { redoHeight, setCompensation, contentHeight } = useContentHeight(
+        getIsContentFullHeight,
+        wrapperRef,
+        [headerRef, footerRef],
+        [contentRef]
+      );
+      setCompensation({ useLayoutFooter: true, elements: [footerRef] });
 
       const getClass = computed(() => {
         return [
@@ -61,6 +92,7 @@
           {
             [`${prefixCls}--dense`]: props.dense,
           },
+          attrs.class ?? {},
         ];
       });
 
@@ -70,61 +102,54 @@
         return Object.keys(omit(slots, 'default', 'leftFooter', 'rightFooter', 'headerContent'));
       });
 
-      const getContentStyle = computed(
-        (): CSSProperties => {
-          const { contentBackground, contentFullHeight, contentStyle } = props;
-          const bg = contentBackground ? { backgroundColor: '#fff' } : {};
-          if (!contentFullHeight) {
-            return { ...bg, ...contentStyle };
-          }
-          return {
-            ...bg,
-            ...contentStyle,
-            minHeight: `${unref(pageHeight)}px`,
-            paddingBottom: `${unref(footerHeight)}px`,
-          };
+      const getContentStyle = computed((): CSSProperties => {
+        const { contentFullHeight, contentStyle, fixedHeight } = props;
+        if (!contentFullHeight) {
+          return { ...contentStyle };
         }
-      );
+
+        const height = `${unref(contentHeight)}px`;
+        return {
+          ...contentStyle,
+          minHeight: height,
+          ...(fixedHeight ? { height } : {}),
+        };
+      });
+
+      const getContentClass = computed(() => {
+        const { contentBackground, contentClass } = props;
+        return [
+          `${prefixCls}-content`,
+          contentClass,
+          {
+            [`${prefixCls}-content-bg`]: contentBackground,
+          },
+        ];
+      });
 
       watch(
-        () => [contentHeight?.value, getShowFooter.value],
+        () => [getShowFooter.value],
         () => {
-          if (!props.contentFullHeight) {
-            return;
-          }
-          nextTick(() => {
-            const footer = unref(footerRef);
-            const header = unref(headerRef);
-            footerHeight.value = 0;
-            const footerEl = footer?.$el;
-
-            if (footerEl) {
-              footerHeight.value += footerEl?.offsetHeight ?? 0;
-            }
-            let headerHeight = 0;
-            const headerEl = header?.$el;
-            if (headerEl) {
-              headerHeight += headerEl?.offsetHeight ?? 0;
-            }
-
-            setPageHeight?.(unref(contentHeight) - unref(footerHeight) - headerHeight);
-          });
+          redoHeight();
         },
         {
+          flush: 'post',
           immediate: true,
         }
       );
 
       return {
         getContentStyle,
-        footerRef,
+        wrapperRef,
         headerRef,
+        contentRef,
+        footerRef,
         getClass,
         getHeaderSlots,
         prefixCls,
         getShowFooter,
-        pageHeight,
         omit,
+        getContentClass,
       };
     },
   });
@@ -135,17 +160,18 @@
   .@{prefix-cls} {
     position: relative;
 
-    .ant-page-header {
-      // padding: 12px 16px;
+    .@{prefix-cls}-content {
+      margin: 16px;
+    }
 
+    .ant-page-header {
       &:empty {
         padding: 0;
       }
     }
 
-    &-content {
-      // padding: 12px;
-      margin: 16px;
+    &-content-bg {
+      background-color: @component-background;
     }
 
     &--dense {

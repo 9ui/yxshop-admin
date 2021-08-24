@@ -19,27 +19,19 @@
 </template>
 <script lang="ts">
   import type { MenuState } from './types';
-
   import { computed, defineComponent, unref, reactive, watch, toRefs, ref } from 'vue';
   import { Menu } from 'ant-design-vue';
   import BasicSubMenuItem from './components/BasicSubMenuItem.vue';
-
   import { MenuModeEnum, MenuTypeEnum } from '/@/enums/menuEnum';
-
   import { useOpenKeys } from './useOpenKeys';
   import { RouteLocationNormalizedLoaded, useRouter } from 'vue-router';
-
   import { isFunction } from '/@/utils/is';
-
   import { basicProps } from './props';
   import { useMenuSetting } from '/@/hooks/setting/useMenuSetting';
   import { REDIRECT_NAME } from '/@/router/constant';
   import { useDesign } from '/@/hooks/web/useDesign';
-
   import { getCurrentParentPath } from '/@/router/menus';
-
-  // import { createAsyncComponent } from '/@/utils/factory/createAsyncComponent';
-  import { listenerLastChangeTab } from '/@/logics/mitt/tabChange';
+  import { listenerRouteChange } from '/@/logics/mitt/routeChange';
   import { getAllParentPath } from '/@/router/helper/menuHelper';
 
   export default defineComponent({
@@ -47,7 +39,6 @@
     components: {
       Menu,
       BasicSubMenuItem,
-      // BasicSubMenuItem: createAsyncComponent(() => import('./components/BasicSubMenuItem.vue')),
     },
     props: basicProps,
     emits: ['menuClick'],
@@ -65,14 +56,14 @@
       const { prefixCls } = useDesign('basic-menu');
       const { items, mode, accordion } = toRefs(props);
 
-      const { getCollapsed, getIsHorizontal, getTopMenuAlign, getSplit } = useMenuSetting();
+      const { getCollapsed, getTopMenuAlign, getSplit } = useMenuSetting();
 
       const { currentRoute } = useRouter();
 
       const { handleOpenChange, setOpenKeys, getOpenKeys } = useOpenKeys(
         menuState,
         items,
-        mode,
+        mode as any,
         accordion
       );
 
@@ -107,7 +98,7 @@
         return inlineCollapseOptions;
       });
 
-      listenerLastChangeTab((route) => {
+      listenerRouteChange((route) => {
         if (route.name === REDIRECT_NAME) return;
         handleMenuChange(route);
         currentActiveMenu.value = route.meta?.currentActiveMenu as string;
@@ -159,8 +150,6 @@
       }
 
       return {
-        prefixCls,
-        getIsHorizontal,
         handleMenuClick,
         getInlineCollapseOptions,
         getMenuClass,

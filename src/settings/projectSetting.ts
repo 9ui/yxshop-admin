@@ -7,28 +7,33 @@ import {
   ThemeEnum,
   RouterTransitionEnum,
   SettingButtonPositionEnum,
+  SessionTimeoutProcessingEnum,
 } from '/@/enums/appEnum';
-import { primaryColor, themeMode } from '../../build/config/themeConfig';
+import { SIDE_BAR_BG_COLOR_LIST, HEADER_PRESET_BG_COLOR_LIST } from './designSetting';
+import { primaryColor } from '../../build/config/themeConfig';
 
 // ! You need to clear the browser cache after the change
 const setting: ProjectConfig = {
   // Whether to show the configuration button
-  showSettingButton: false,
+  showSettingButton: true,
+
+  // Whether to show the theme switch button
+  showDarkModeToggle: true,
 
   // `Settings` button position
   settingButtonPosition: SettingButtonPositionEnum.AUTO,
 
   // Permission mode
-  permissionMode: PermissionModeEnum.ROLE,
+  permissionMode: PermissionModeEnum.ROUTE_MAPPING,
 
   // Permission-related cache is stored in sessionStorage or localStorage
-  permissionCacheType: CacheTypeEnum.SESSION,
+  permissionCacheType: CacheTypeEnum.LOCAL,
+
+  // Session timeout processing
+  sessionTimeoutProcessing: SessionTimeoutProcessingEnum.ROUTE_JUMP,
 
   // color
   themeColor: primaryColor,
-
-  // TODO dark theme
-  themeMode: themeMode,
 
   // Website gray mode, open for possible mourning dates
   grayMode: false,
@@ -51,7 +56,7 @@ const setting: ProjectConfig = {
   // Header configuration
   headerSetting: {
     // header bg color
-    bgColor: '#ffffff',
+    bgColor: HEADER_PRESET_BG_COLOR_LIST[0],
     // Fixed at the top
     fixed: true,
     // Whether to show top
@@ -60,11 +65,10 @@ const setting: ProjectConfig = {
     theme: ThemeEnum.LIGHT,
     // Whether to enable the lock screen function
     useLockPage: true,
-
     // Whether to show the full screen button
     showFullScreen: true,
     // Whether to show the document button
-    showDoc: false,
+    showDoc: true,
     // Whether to show the notification button
     showNotice: true,
     // Whether to display the menu search
@@ -74,7 +78,7 @@ const setting: ProjectConfig = {
   // Menu configuration
   menuSetting: {
     // sidebar menu bg color
-    bgColor: '#001529',
+    bgColor: SIDE_BAR_BG_COLOR_LIST[0],
     //  Whether to fix the left menu
     fixed: true,
     // Menu collapse
@@ -114,17 +118,17 @@ const setting: ProjectConfig = {
 
   // Multi-label
   multiTabsSetting: {
+    cache: false,
     // Turn on
     show: true,
     // Is it possible to drag and drop sorting tabs
-    canDrag: false,
+    canDrag: true,
     // Turn on quick actions
-    showQuick: false,
-
+    showQuick: true,
     // Whether to show the refresh button
-    showRedo: false,
+    showRedo: true,
     // Whether to show the collapse button
-    showFold: false,
+    showFold: true,
   },
 
   // Transition Setting
@@ -151,7 +155,7 @@ const setting: ProjectConfig = {
   lockTime: 0,
 
   // Whether to show breadcrumbs
-  showBreadCrumb: false,
+  showBreadCrumb: true,
 
   // Whether to show the breadcrumb icon
   showBreadCrumbIcon: false,

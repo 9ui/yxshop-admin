@@ -7,6 +7,7 @@
             <a-input
               :class="`${prefixCls}-input`"
               :placeholder="t('common.searchText')"
+              ref="inputRef"
               allow-clear
               @change="handleSearch"
             >
@@ -22,6 +23,7 @@
           <div :class="`${prefixCls}-not-data`" v-show="getIsNotData">
             {{ t('component.app.searchNotData') }}
           </div>
+
           <ul :class="`${prefixCls}-list`" v-show="!getIsNotData" ref="scrollWrap">
             <li
               :ref="setRefs(index)"
@@ -54,82 +56,62 @@
     </transition>
   </Teleport>
 </template>
-<script lang="ts">
-  import { defineComponent, computed, unref, ref } from 'vue';
+
+<script lang="ts" setup>
+  import { computed, unref, ref, watch, nextTick } from 'vue';
   import { SearchOutlined } from '@ant-design/icons-vue';
-  import { Input } from 'ant-design-vue';
   import AppSearchFooter from './AppSearchFooter.vue';
   import Icon from '/@/components/Icon';
-
-  import clickOutside from '/@/directives/clickOutside';
-
+  // @ts-ignore
+  import vClickOutside from '/@/directives/clickOutside';
   import { useDesign } from '/@/hooks/web/useDesign';
   import { useRefs } from '/@/hooks/core/useRefs';
   import { useMenuSearch } from './useMenuSearch';
   import { useI18n } from '/@/hooks/web/useI18n';
   import { useAppInject } from '/@/hooks/web/useAppInject';
 
-  export default defineComponent({
-    name: 'AppSearchModal',
-    components: { Icon, SearchOutlined, AppSearchFooter, [Input.name]: Input },
-    directives: {
-      clickOutside,
-    },
-
-    props: {
-      visible: Boolean,
-    },
-    emits: ['close'],
-    setup(_, { emit }) {
-      const scrollWrap = ref<ElRef>(null);
-      const { prefixCls } = useDesign('app-search-modal');
-      const { t } = useI18n();
-      const [refs, setRefs] = useRefs();
-      const { getIsMobile } = useAppInject();
-
-      const {
-        handleSearch,
-        searchResult,
-        keyword,
-        activeIndex,
-        handleEnter,
-        handleMouseenter,
-      } = useMenuSearch(refs, scrollWrap, emit);
-
-      const getIsNotData = computed(() => {
-        return !keyword || unref(searchResult).length === 0;
-      });
-
-      const getClass = computed(() => {
-        return [
-          prefixCls,
-          {
-            [`${prefixCls}--mobile`]: unref(getIsMobile),
-          },
-        ];
-      });
-
-      function handleClose() {
-        searchResult.value = [];
-        emit('close');
-      }
-
-      return {
-        t,
-        prefixCls,
-        getClass,
-        handleSearch,
-        searchResult,
-        activeIndex,
-        getIsNotData,
-        handleEnter,
-        setRefs,
-        scrollWrap,
-        handleMouseenter,
-        handleClose,
-      };
-    },
+  const props = defineProps({
+    visible: { type: Boolean },
   });
+
+  const emit = defineEmits(['close']);
+
+  const scrollWrap = ref(null);
+  const inputRef = ref<Nullable<HTMLElement>>(null);
+
+  const { t } = useI18n();
+  const { prefixCls } = useDesign('app-search-modal');
+  const [refs, setRefs] = useRefs();
+  const { getIsMobile } = useAppInject();
+
+  const { handleSearch, searchResult, keyword, activeIndex, handleEnter, handleMouseenter } =
+    useMenuSearch(refs, scrollWrap, emit);
+
+  const getIsNotData = computed(() => !keyword || unref(searchResult).length === 0);
+
+  const getClass = computed(() => {
+    return [
+      prefixCls,
+      {
+        [`${prefixCls}--mobile`]: unref(getIsMobile),
+      },
+    ];
+  });
+
+  watch(
+    () => props.visible,
+    (visible: boolean) => {
+      visible &&
+        nextTick(() => {
+          unref(inputRef)?.focus();
+        });
+    }
+  );
+
+  function handleClose() {
+    searchResult.value = [];
+    emit('close');
+  }
 </script>
 <style lang="less" scoped>
   @prefix-cls: ~'@{namespace}-app-search-modal';
@@ -143,10 +125,8 @@
     width: 100%;
     height: 100%;
     padding-top: 50px;
-    // background: #656c85cc;
-    background: rgba(0, 0, 0, 0.25);
+    background-color: rgba(0, 0, 0, 0.25);
     justify-content: center;
-    // backdrop-filter: blur(2px);
 
     &--mobile {
       padding: 0;
@@ -188,12 +168,10 @@
     &-content {
       position: relative;
       width: 632px;
-      // padding: 14px;
       margin: 0 auto auto auto;
-      background: #f5f6f7;
+      background-color: @component-background;
       border-radius: 16px;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-      // box-shadow: inset 1px 1px 0 0 hsla(0, 0%, 100%, 0.5), 0 3px 8px 0 #555a64;
       flex-direction: column;
     }
 
@@ -251,15 +229,20 @@
         font-size: 14px;
         color: @text-color-base;
         cursor: pointer;
-        // background: @primary-color;
-        background: #fff;
+        background-color: @component-background;
         border-radius: 4px;
         box-shadow: 0 1px 3px 0 #d4d9e1;
         align-items: center;
 
+        > div:first-child,
+        > div:last-child {
+          display: flex;
+          align-items: center;
+        }
+
         &--active {
           color: #fff;
-          background: @primary-color;
+          background-color: @primary-color;
 
           .@{prefix-cls}-list__item-enter {
             opacity: 1;

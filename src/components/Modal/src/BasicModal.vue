@@ -1,5 +1,5 @@
 <template>
-  <Modal @cancel="handleCancel" v-bind="getBindValue">
+  <Modal v-bind="getBindValue" @cancel="handleCancel">
     <template #closeIcon v-if="!$slots.closeIcon">
       <ModalClose
         :canFullscreen="getProps.canFullscreen"
@@ -18,9 +18,9 @@
     </template>
 
     <template #footer v-if="!$slots.footer">
-      <ModalFooter v-bind="getProps" @ok="handleOk" @cancel="handleCancel">
+      <ModalFooter v-bind="getBindValue" @ok="handleOk" @cancel="handleCancel">
         <template #[item]="data" v-for="item in Object.keys($slots)">
-          <slot :name="item" v-bind="data"></slot>
+          <slot :name="item" v-bind="data || {}"></slot>
         </template>
       </ModalFooter>
     </template>
@@ -31,11 +31,12 @@
       :fullScreen="fullScreenRef"
       ref="modalWrapperRef"
       :loading="getProps.loading"
+      :loading-tip="getProps.loadingTip"
       :minHeight="getProps.minHeight"
       :height="getWrapperHeight"
       :visible="visibleRef"
       :modalFooterHeight="footer !== undefined && !footer ? 0 : undefined"
-      v-bind="omit(getProps.wrapperProps, 'visible', 'height')"
+      v-bind="omit(getProps.wrapperProps, 'visible', 'height', 'modalFooterHeight')"
       @ext-height="handleExtHeight"
       @height-change="handleHeightChange"
     >
@@ -43,12 +44,12 @@
     </ModalWrapper>
 
     <template #[item]="data" v-for="item in Object.keys(omit($slots, 'default'))">
-      <slot :name="item" v-bind="data"></slot>
+      <slot :name="item" v-bind="data || {}"></slot>
     </template>
   </Modal>
 </template>
 <script lang="ts">
-  import type { ModalProps, ModalMethods } from './types';
+  import type { ModalProps, ModalMethods } from './typing';
 
   import {
     defineComponent,
@@ -61,30 +62,27 @@
     getCurrentInstance,
     nextTick,
   } from 'vue';
-
   import Modal from './components/Modal';
   import ModalWrapper from './components/ModalWrapper.vue';
   import ModalClose from './components/ModalClose.vue';
   import ModalFooter from './components/ModalFooter.vue';
   import ModalHeader from './components/ModalHeader.vue';
-
   import { isFunction } from '/@/utils/is';
   import { deepMerge } from '/@/utils';
-
   import { basicProps } from './props';
   import { useFullScreen } from './hooks/useModalFullScreen';
-
   import { omit } from 'lodash-es';
+
   export default defineComponent({
     name: 'BasicModal',
     components: { Modal, ModalWrapper, ModalClose, ModalFooter, ModalHeader },
     inheritAttrs: false,
     props: basicProps,
-    emits: ['visible-change', 'height-change', 'cancel', 'ok', 'register'],
+    emits: ['visible-change', 'height-change', 'cancel', 'ok', 'register', 'update:visible'],
     setup(props, { emit, attrs }) {
       const visibleRef = ref(false);
       const propsRef = ref<Partial<ModalProps> | null>(null);
-      const modalWrapperRef = ref<ComponentRef>(null);
+      const modalWrapperRef = ref<any>(null);
 
       // modal   Bottom and top height
       const extHeightRef = ref(0);
@@ -106,14 +104,12 @@
       }
 
       // Custom title component: get title
-      const getMergeProps = computed(
-        (): ModalProps => {
-          return {
-            ...props,
-            ...(unref(propsRef) as any),
-          };
-        }
-      );
+      const getMergeProps = computed((): Recordable => {
+        return {
+          ...props,
+          ...(unref(propsRef) as any),
+        };
+      });
 
       const { handleFullScreen, getWrapClassName, fullScreenRef } = useFullScreen({
         modalWrapperRef,
@@ -121,30 +117,33 @@
         wrapClassName: toRef(getMergeProps.value, 'wrapClassName'),
       });
 
-      // modal component does not need title
-      const getProps = computed(
-        (): ModalProps => {
-          const opt = {
-            ...unref(getMergeProps),
-            visible: unref(visibleRef),
-            title: undefined,
-          };
-          return {
-            ...opt,
-            wrapClassName: unref(getWrapClassName),
-          };
-        }
-      );
+      // modal component does not need title and origin buttons
+      const getProps = computed((): Recordable => {
+        const opt = {
+          ...unref(getMergeProps),
+          visible: unref(visibleRef),
+          okButtonProps: undefined,
+          cancelButtonProps: undefined,
+          title: undefined,
+        };
+        return {
+          ...opt,
+          wrapClassName: unref(getWrapClassName),
+        };
+      });
 
-      const getBindValue = computed(
-        (): Recordable => {
-          const attr = { ...attrs, ...unref(getProps) };
-          if (unref(fullScreenRef)) {
-            return omit(attr, 'height');
-          }
-          return attr;
+      const getBindValue = computed((): Recordable => {
+        const attr = {
+          ...attrs,
+          ...unref(getMergeProps),
+          visible: unref(visibleRef),
+          wrapClassName: unref(getWrapClassName),
+        };
+        if (unref(fullScreenRef)) {
+          return omit(attr, ['height', 'title']);
         }
-      );
+        return omit(attr, 'title');
+      });
 
       const getWrapperHeight = computed(() => {
         if (unref(fullScreenRef)) return undefined;
@@ -160,6 +159,7 @@
         () => unref(visibleRef),
         (v) => {
           emit('visible-change', v);
+          emit('update:visible', v);
           instance && modalMethods.emitVisible?.(v, instance.uid);
           nextTick(() => {
             if (props.scrollTop && v && unref(modalWrapperRef)) {
@@ -183,7 +183,7 @@
         }
 
         visibleRef.value = false;
-        emit('cancel');
+        emit('cancel', e);
       }
 
       /**
@@ -191,13 +191,17 @@
        */
       function setModalProps(props: Partial<ModalProps>): void {
         // Keep the last setModalProps
-        propsRef.value = deepMerge(unref(propsRef) || {}, props);
-        if (!Reflect.has(props, 'visible')) return;
-        visibleRef.value = !!props.visible;
+        propsRef.value = deepMerge(unref(propsRef) || ({} as any), props);
+        if (Reflect.has(props, 'visible')) {
+          visibleRef.value = !!props.visible;
+        }
+        if (Reflect.has(props, 'defaultFullscreen')) {
+          fullScreenRef.value = !!props.defaultFullscreen;
+        }
       }
 
-      function handleOk() {
-        emit('ok');
+      function handleOk(e: Event) {
+        emit('ok', e);
       }
 
       function handleHeightChange(height: string) {
@@ -208,7 +212,7 @@
         extHeightRef.value = height;
       }
 
-      function handleTitleDbClick(e: ChangeEvent) {
+      function handleTitleDbClick(e) {
         if (!props.canFullscreen) return;
         e.stopPropagation();
         handleFullScreen(e);

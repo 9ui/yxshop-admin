@@ -1,6 +1,5 @@
 <template>
   <div :class="`${prefixCls}-dom`" :style="getDomStyle"></div>
-
   <div
     v-click-outside="handleClickOutside"
     :style="getWrapStyle"
@@ -16,7 +15,7 @@
   >
     <AppLogo :showTitle="false" :class="`${prefixCls}-logo`" />
 
-    <Trigger :class="`${prefixCls}-trigger`" />
+    <LayoutTrigger :class="`${prefixCls}-trigger`" />
 
     <ScrollContainer>
       <ul :class="`${prefixCls}-module`">
@@ -27,15 +26,15 @@
               [`${prefixCls}-module__item--active`]: item.path === activePath,
             },
           ]"
+          v-bind="getItemEvents(item)"
           v-for="item in menuModules"
           :key="item.path"
-          v-bind="getItemEvents(item)"
         >
-          <MenuTag :item="item" :showTitle="false" :isHorizontal="false" />
+          <SimpleMenuTag :item="item" collapseParent dot />
           <Icon
             :class="`${prefixCls}-module__icon`"
             :size="getCollapsed ? 16 : 20"
-            :icon="item.meta && item.meta.icon"
+            :icon="item.icon || (item.meta && item.meta.icon)"
           />
           <p :class="`${prefixCls}-module__name`">
             {{ t(item.name) }}
@@ -64,7 +63,7 @@
       </div>
       <ScrollContainer :class="`${prefixCls}-menu-list__content`">
         <SimpleMenu
-          :items="chilrenMenus"
+          :items="childrenMenus"
           :theme="getMenuTheme"
           mixSider
           @menuClick="handleMenuClick"
@@ -81,29 +80,23 @@
 <script lang="ts">
   import type { Menu } from '/@/router/types';
   import type { CSSProperties } from 'vue';
+  import { computed, defineComponent, onMounted, ref, unref } from 'vue';
   import type { RouteLocationNormalized } from 'vue-router';
-
-  import { defineComponent, onMounted, ref, computed, unref } from 'vue';
-
-  import { MenuTag } from '/@/components/Menu';
   import { ScrollContainer } from '/@/components/Container';
-  import Icon from '/@/components/Icon';
+  import { SimpleMenu, SimpleMenuTag } from '/@/components/SimpleMenu';
+  import { Icon } from '/@/components/Icon';
   import { AppLogo } from '/@/components/Application';
-  import Trigger from '../trigger/HeaderTrigger.vue';
-
   import { useMenuSetting } from '/@/hooks/setting/useMenuSetting';
   import { useDragLine } from './useLayoutSider';
   import { useGlobSetting } from '/@/hooks/setting';
   import { useDesign } from '/@/hooks/web/useDesign';
   import { useI18n } from '/@/hooks/web/useI18n';
   import { useGo } from '/@/hooks/web/usePage';
-
-  import { SIDE_BAR_SHOW_TIT_MINI_WIDTH, SIDE_BAR_MINI_WIDTH } from '/@/enums/appEnum';
-
+  import { SIDE_BAR_MINI_WIDTH, SIDE_BAR_SHOW_TIT_MINI_WIDTH } from '/@/enums/appEnum';
   import clickOutside from '/@/directives/clickOutside';
-  import { getShallowMenus, getChildrenMenus, getCurrentParentPath } from '/@/router/menus';
-  import { listenerLastChangeTab } from '/@/logics/mitt/tabChange';
-  import { SimpleMenu } from '/@/components/SimpleMenu';
+  import { getChildrenMenus, getCurrentParentPath, getShallowMenus } from '/@/router/menus';
+  import { listenerRouteChange } from '/@/logics/mitt/routeChange';
+  import LayoutTrigger from '../trigger/index.vue';
 
   export default defineComponent({
     name: 'LayoutMixSider',
@@ -111,9 +104,9 @@
       ScrollContainer,
       AppLogo,
       SimpleMenu,
-      MenuTag,
       Icon,
-      Trigger,
+      LayoutTrigger,
+      SimpleMenuTag,
     },
     directives: {
       clickOutside,
@@ -121,7 +114,7 @@
     setup() {
       let menuModules = ref<Menu[]>([]);
       const activePath = ref('');
-      const chilrenMenus = ref<Menu[]>([]);
+      const childrenMenus = ref<Menu[]>([]);
       const openMenu = ref(false);
       const dragBarRef = ref<ElRef>(null);
       const sideRef = ref<ElRef>(null);
@@ -148,18 +141,16 @@
 
       useDragLine(sideRef, dragBarRef, true);
 
-      const getMenuStyle = computed(
-        (): CSSProperties => {
-          return {
-            width: unref(openMenu) ? `${unref(getMenuWidth)}px` : 0,
-            left: `${unref(getMixSideWidth)}px`,
-          };
-        }
-      );
+      const getMenuStyle = computed((): CSSProperties => {
+        return {
+          width: unref(openMenu) ? `${unref(getMenuWidth)}px` : 0,
+          left: `${unref(getMixSideWidth)}px`,
+        };
+      });
 
       const getIsFixed = computed(() => {
         /* eslint-disable-next-line */
-        mixSideHasChildren.value = unref(chilrenMenus).length > 0;
+        mixSideHasChildren.value = unref(childrenMenus).length > 0;
         const isFixed = unref(getMixSideFixed) && unref(mixSideHasChildren);
         if (isFixed) {
           /* eslint-disable-next-line */
@@ -172,25 +163,22 @@
         return unref(getCollapsed) ? SIDE_BAR_MINI_WIDTH : SIDE_BAR_SHOW_TIT_MINI_WIDTH;
       });
 
-      const getDomStyle = computed(
-        (): CSSProperties => {
-          const fixedWidth = unref(getIsFixed) ? unref(getRealWidth) : 0;
-          const width = `${unref(getMixSideWidth) + fixedWidth}px`;
-          return getWrapCommonStyle(width);
-        }
-      );
+      const getDomStyle = computed((): CSSProperties => {
+        const fixedWidth = unref(getIsFixed) ? unref(getRealWidth) : 0;
+        const width = `${unref(getMixSideWidth) + fixedWidth}px`;
+        return getWrapCommonStyle(width);
+      });
 
-      const getWrapStyle = computed(
-        (): CSSProperties => {
-          const width = `${unref(getMixSideWidth)}px`;
-          return getWrapCommonStyle(width);
-        }
-      );
+      const getWrapStyle = computed((): CSSProperties => {
+        const width = `${unref(getMixSideWidth)}px`;
+        return getWrapCommonStyle(width);
+      });
 
       const getMenuEvents = computed(() => {
         return !unref(getMixSideFixed)
           ? {
               onMouseleave: () => {
+                setActive(true);
                 closeMenu();
               },
             }
@@ -203,7 +191,7 @@
         menuModules.value = await getShallowMenus();
       });
 
-      listenerLastChangeTab((route) => {
+      listenerRouteChange((route) => {
         currentRoute.value = route;
         setActive(true);
         if (unref(getCloseMixSidebarOnChange)) {
@@ -221,15 +209,18 @@
       }
 
       // Process module menu click
-      async function hanldeModuleClick(path: string, hover = false) {
+      async function handleModuleClick(path: string, hover = false) {
         const children = await getChildrenMenus(path);
-
         if (unref(activePath) === path) {
           if (!hover) {
             if (!unref(openMenu)) {
               openMenu.value = true;
             } else {
               closeMenu();
+            }
+          } else {
+            if (!unref(openMenu)) {
+              openMenu.value = true;
             }
           }
           if (!unref(openMenu)) {
@@ -241,20 +232,19 @@
         }
 
         if (!children || children.length === 0) {
-          go(path);
-          chilrenMenus.value = [];
+          if (!hover) go(path);
+          childrenMenus.value = [];
           closeMenu();
           return;
         }
-        chilrenMenus.value = children;
+        childrenMenus.value = children;
       }
 
       // Set the currently active menu and submenu
       async function setActive(setChildren = false) {
         const path = currentRoute.value?.path;
         if (!path) return;
-        const parentPath = await getCurrentParentPath(path);
-        activePath.value = parentPath;
+        activePath.value = await getCurrentParentPath(path);
         // hanldeModuleClick(parentPath);
         if (unref(getIsMixSidebar)) {
           const activeMenu = unref(menuModules).find((item) => item.path === unref(activePath));
@@ -262,14 +252,14 @@
           if (p) {
             const children = await getChildrenMenus(p);
             if (setChildren) {
-              chilrenMenus.value = children;
+              childrenMenus.value = children;
 
               if (unref(getMixSideFixed)) {
                 openMenu.value = children.length > 0;
               }
             }
             if (children.length === 0) {
-              chilrenMenus.value = [];
+              childrenMenus.value = [];
             }
           }
         }
@@ -287,11 +277,15 @@
       function getItemEvents(item: Menu) {
         if (unref(getMixSideTrigger) === 'hover') {
           return {
-            onMouseenter: () => hanldeModuleClick(item.path, true),
+            onMouseenter: () => handleModuleClick(item.path, true),
+            onClick: async () => {
+              const children = await getChildrenMenus(item.path);
+              if (item.path && (!children || children.length === 0)) go(item.path);
+            },
           };
         }
         return {
-          onClick: () => hanldeModuleClick(item.path),
+          onClick: () => handleModuleClick(item.path),
         };
       }
 
@@ -312,9 +306,9 @@
         t,
         prefixCls,
         menuModules,
-        hanldeModuleClick,
+        handleModuleClick: handleModuleClick,
         activePath,
-        chilrenMenus,
+        childrenMenus: childrenMenus,
         getShowDragBar,
         handleMenuClick,
         getMenuStyle,
@@ -337,8 +331,6 @@
 </script>
 <style lang="less">
   @prefix-cls: ~'@{namespace}-layout-mix-sider';
-  @tag-prefix-cls: ~'@{namespace}-basic-menu-item-tag';
-  @menu-prefix-cls: ~'@{namespace}-menu';
   @width: 80px;
   .@{prefix-cls} {
     position: fixed;
@@ -347,17 +339,8 @@
     z-index: @layout-mix-sider-fixed-z-index;
     height: 100%;
     overflow: hidden;
-    background: @sider-dark-bg-color;
+    background-color: @sider-dark-bg-color;
     transition: all 0.2s ease 0s;
-    .@{tag-prefix-cls} {
-      position: absolute;
-      top: 6px;
-      right: 2px;
-    }
-
-    .@{menu-prefix-cls} {
-      width: 100% !important;
-    }
 
     &-dom {
       height: 100%;
@@ -395,7 +378,7 @@
 
           &--active {
             color: @primary-color;
-            background: unset;
+            background-color: unset;
           }
         }
       }
@@ -415,12 +398,12 @@
         }
       }
     }
-    @border-color: @sider-dark-lighten-1-bg-color;
+    @border-color: @sider-dark-lighten-bg-color;
 
     &.dark {
       &.open {
         .@{prefix-cls}-logo {
-          border-bottom: 1px solid @border-color;
+          // border-bottom: 1px solid @border-color;
         }
 
         > .scrollbar {
@@ -428,7 +411,7 @@
         }
       }
       .@{prefix-cls}-menu-list {
-        background: @sider-dark-bg-color;
+        background-color: @sider-dark-bg-color;
 
         &__title {
           color: @white;
@@ -471,7 +454,7 @@
         &--active {
           font-weight: 700;
           color: @white;
-          background: @sider-dark-darken-bg-color;
+          background-color: @sider-dark-darken-bg-color;
 
           &::before {
             position: absolute;
@@ -479,7 +462,7 @@
             left: 0;
             width: 3px;
             height: 100%;
-            background: @primary-color;
+            background-color: @primary-color;
             content: '';
           }
         }
@@ -503,37 +486,28 @@
       bottom: 0;
       left: 0;
       width: 100%;
-      padding: 6px;
-      padding-left: 12px;
-      font-size: 18px;
+      font-size: 14px;
       color: rgba(255, 255, 255, 0.65);
+      text-align: center;
       cursor: pointer;
-      background: @sider-dark-bg-color;
+      background-color: @trigger-dark-bg-color;
+      height: 36px;
+      line-height: 36px;
     }
 
     &.light &-trigger {
       color: rgba(0, 0, 0, 0.65);
-      background: #fff;
+      background-color: #fff;
+      border-top: 1px solid #eee;
     }
 
     &-menu-list {
       position: fixed;
       top: 0;
-      width: 0;
       width: 200px;
       height: calc(100%);
-      background: #fff;
+      background-color: #fff;
       transition: all 0.2s;
-      .@{tag-prefix-cls} {
-        position: absolute;
-        top: 10px;
-        right: 30px;
-
-        &--dot {
-          top: 50%;
-          margin-top: -3px;
-        }
-      }
 
       &__title {
         display: flex;
@@ -595,7 +569,7 @@
       width: 1px;
       height: calc(100% - 50px);
       cursor: ew-resize;
-      background: #f8f8f9;
+      background-color: #f8f8f9;
       border-top: none;
       border-bottom: none;
       box-shadow: 0 0 4px 0 rgba(28, 36, 56, 0.15);

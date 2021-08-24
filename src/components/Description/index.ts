@@ -1,8 +1,6 @@
-// import { createAsyncComponent } from '/@/utils/factory/createAsyncComponent';
-// export const Description = createAsyncComponent(() => import('./src/index'));
+import { withInstall } from '/@/utils';
+import description from './src/Description.vue';
 
-import Description from './src/index';
-
-export { Description };
-export * from './src/types';
+export * from './src/typing';
 export { useDescription } from './src/useDescription';
+export const Description = withInstall(description);

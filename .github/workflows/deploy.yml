@@ -94,8 +94,8 @@ jobs:
             tar zxvf dist.tgz
 
       # Notify
-      - name: Success
-        uses: rjstone/discord-webhook-notify@v1
+      - name: WeChat Work notification
+        uses: chf007/action-wechat-work@master
         if: success()
         with:
           severity: info

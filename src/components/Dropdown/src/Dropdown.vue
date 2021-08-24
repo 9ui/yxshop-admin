@@ -1,57 +1,75 @@
 <template>
-  <a-dropdown :trigger="trigger" v-bind="$attrs">
+  <Dropdown :trigger="trigger" v-bind="$attrs">
     <span>
       <slot></slot>
     </span>
     <template #overlay>
-      <a-menu :selectedKeys="selectedKeys">
-        <template v-for="item in getMenuList" :key="`${item.event}`">
-          <a-menu-item
+      <Menu :selectedKeys="selectedKeys">
+        <template v-for="item in dropMenuList" :key="`${item.event}`">
+          <MenuItem
             v-bind="getAttr(item.event)"
             @click="handleClickMenu(item)"
             :disabled="item.disabled"
           >
-            <Icon :icon="item.icon" v-if="item.icon" />
-            <span class="ml-1">{{ item.text }}</span>
-          </a-menu-item>
-          <a-menu-divider v-if="item.divider" :key="`d-${item.event}`" />
+            <Popconfirm
+              v-if="popconfirm && item.popConfirm"
+              v-bind="getPopConfirmAttrs(item.popConfirm)"
+            >
+              <template #icon v-if="item.popConfirm.icon">
+                <Icon :icon="item.popConfirm.icon" />
+              </template>
+              <div>
+                <Icon :icon="item.icon" v-if="item.icon" />
+                <span class="ml-1">{{ item.text }}</span>
+              </div>
+            </Popconfirm>
+            <template v-else>
+              <Icon :icon="item.icon" v-if="item.icon" />
+              <span class="ml-1">{{ item.text }}</span>
+            </template>
+          </MenuItem>
+          <MenuDivider v-if="item.divider" :key="`d-${item.event}`" />
         </template>
-      </a-menu>
+      </Menu>
     </template>
-  </a-dropdown>
+  </Dropdown>
 </template>
 
 <script lang="ts">
-  import type { PropType } from 'vue';
-  import type { DropMenu } from './types';
+  import { computed, PropType } from 'vue';
+  import type { DropMenu } from './typing';
 
-  import { defineComponent, computed, unref } from 'vue';
-  import { Dropdown, Menu } from 'ant-design-vue';
-  import Icon from '/@/components/Icon/index';
+  import { defineComponent } from 'vue';
+  import { Dropdown, Menu, Popconfirm } from 'ant-design-vue';
+  import { Icon } from '/@/components/Icon';
+  import { omit } from 'lodash-es';
+  import { isFunction } from '/@/utils/is';
 
   export default defineComponent({
     name: 'BasicDropdown',
     components: {
-      [Dropdown.name]: Dropdown,
-      [Menu.name]: Menu,
-      [Menu.Item.name]: Menu.Item,
-      [Menu.Divider.name]: Menu.Divider,
+      Dropdown,
+      Menu,
+      MenuItem: Menu.Item,
+      MenuDivider: Menu.Divider,
       Icon,
+      Popconfirm,
     },
     props: {
+      popconfirm: Boolean,
       /**
        * the trigger mode which executes the drop-down action
        * @default ['hover']
        * @type string[]
        */
       trigger: {
-        type: [Array] as PropType<string[]>,
+        type: [Array] as PropType<('contextmenu' | 'click' | 'hover')[]>,
         default: () => {
           return ['contextmenu'];
         },
       },
       dropMenuList: {
-        type: Array as PropType<DropMenu[]>,
+        type: Array as PropType<(DropMenu & Recordable)[]>,
         default: () => [],
       },
       selectedKeys: {
@@ -61,19 +79,28 @@
     },
     emits: ['menuEvent'],
     setup(props, { emit }) {
-      const getMenuList = computed(() => props.dropMenuList);
-
       function handleClickMenu(item: DropMenu) {
         const { event } = item;
-        const menu = unref(getMenuList).find((item) => `${item.event}` === `${event}`);
+        const menu = props.dropMenuList.find((item) => `${item.event}` === `${event}`);
         emit('menuEvent', menu);
         item.onClick?.();
       }
 
+      const getPopConfirmAttrs = computed(() => {
+        return (attrs) => {
+          const originAttrs = omit(attrs, ['confirm', 'cancel', 'icon']);
+          if (!attrs.onConfirm && attrs.confirm && isFunction(attrs.confirm))
+            originAttrs['onConfirm'] = attrs.confirm;
+          if (!attrs.onCancel && attrs.cancel && isFunction(attrs.cancel))
+            originAttrs['onCancel'] = attrs.cancel;
+          return originAttrs;
+        };
+      });
+
       return {
         handleClickMenu,
-        getMenuList,
-        getAttr: (key: string) => ({ key }),
+        getPopConfirmAttrs,
+        getAttr: (key: string | number) => ({ key }),
       };
     },
   });

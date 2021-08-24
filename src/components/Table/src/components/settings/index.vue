@@ -1,47 +1,64 @@
 <template>
   <div class="table-settings">
-    <RedoSetting v-if="getSetting.size" />
-    <SizeSetting v-if="getSetting.redo" />
-    <ColumnSetting v-if="getSetting.setting" />
-    <FullScreenSetting v-if="getSetting.fullScreen" />
+    <RedoSetting v-if="getSetting.redo" :getPopupContainer="getTableContainer" />
+    <SizeSetting v-if="getSetting.size" :getPopupContainer="getTableContainer" />
+    <ColumnSetting
+      v-if="getSetting.setting"
+      @columns-change="handleColumnChange"
+      :getPopupContainer="getTableContainer"
+    />
+    <FullScreenSetting v-if="getSetting.fullScreen" :getPopupContainer="getTableContainer" />
   </div>
 </template>
 <script lang="ts">
-  import { defineComponent, PropType, computed } from 'vue';
-  import type { TableSetting } from '../../types/table';
-  import { useI18n } from '/@/hooks/web/useI18n';
-  import { createAsyncComponent } from '/@/utils/factory/createAsyncComponent';
+  import type { PropType } from 'vue';
+  import type { TableSetting, ColumnChangeParam } from '../../types/table';
+  import { defineComponent, computed, unref } from 'vue';
   import ColumnSetting from './ColumnSetting.vue';
+  import SizeSetting from './SizeSetting.vue';
+  import RedoSetting from './RedoSetting.vue';
+  import FullScreenSetting from './FullScreenSetting.vue';
+  import { useI18n } from '/@/hooks/web/useI18n';
+  import { useTableContext } from '../../hooks/useTableContext';
+
   export default defineComponent({
     name: 'TableSetting',
     components: {
       ColumnSetting,
-      SizeSetting: createAsyncComponent(() => import('./SizeSetting.vue')),
-      RedoSetting: createAsyncComponent(() => import('./RedoSetting.vue')),
-      FullScreenSetting: createAsyncComponent(() => import('./FullScreenSetting.vue')),
+      SizeSetting,
+      RedoSetting,
+      FullScreenSetting,
     },
     props: {
       setting: {
         type: Object as PropType<TableSetting>,
-        default: {},
+        default: () => ({}),
       },
     },
-    setup(props) {
+    emits: ['columns-change'],
+    setup(props, { emit }) {
       const { t } = useI18n();
+      const table = useTableContext();
 
-      const getSetting = computed(
-        (): TableSetting => {
-          return {
-            redo: true,
-            size: true,
-            setting: true,
-            fullScreen: false,
-            ...props.setting,
-          };
-        }
-      );
+      const getSetting = computed((): TableSetting => {
+        return {
+          redo: true,
+          size: true,
+          setting: true,
+          fullScreen: false,
+          ...props.setting,
+        };
+      });
 
-      return { getSetting, t };
+      function handleColumnChange(data: ColumnChangeParam[]) {
+        emit('columns-change', data);
+      }
+
+      function getTableContainer() {
+        return table ? unref(table.wrapRef) : document.body;
+      }
+
+      return { getSetting, t, handleColumnChange, getTableContainer };
     },
   });
 </script>

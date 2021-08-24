@@ -1,15 +1,14 @@
 import type { BasicColumn, ActionItem } from '/@/components/Table';
-
-import { FileItem, PreviewFileItem, UploadResultStatus } from './types';
+import { FileItem, PreviewFileItem, UploadResultStatus } from './typing';
 import {
   // checkImgType,
   isImgTypeByName,
 } from './helper';
 import { Progress, Tag } from 'ant-design-vue';
-
 import TableAction from '/@/components/Table/src/components/TableAction.vue';
 import ThumbUrl from './ThumbUrl.vue';
 import { useI18n } from '/@/hooks/web/useI18n';
+
 const { t } = useI18n();
 
 // 文件上传列表
@@ -128,7 +127,6 @@ export function createPreviewActionColumn({
   handleDownload,
 }: {
   handleRemove: Fn;
-  handlePreview: Fn;
   handleDownload: Fn;
 }): BasicColumn {
   return {
@@ -137,8 +135,6 @@ export function createPreviewActionColumn({
     dataIndex: 'action',
     fixed: false,
     customRender: ({ record }) => {
-      // const { url } = (record || {}) as PreviewFileItem;
-
       const actions: ActionItem[] = [
         {
           label: t('component.upload.del'),
@@ -150,12 +146,7 @@ export function createPreviewActionColumn({
           onClick: handleDownload.bind(null, record),
         },
       ];
-      // if (isImgTypeByName(url)) {
-      //   actions.unshift({
-      //     label: t('component.upload.preview'),
-      //     onClick: handlePreview.bind(null, record),
-      //   });
-      // }
+
       return <TableAction actions={actions} outside={true} />;
     },
   };

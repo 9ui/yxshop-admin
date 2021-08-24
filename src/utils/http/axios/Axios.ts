@@ -1,15 +1,13 @@
-import type { AxiosRequestConfig, AxiosInstance, AxiosResponse } from 'axios';
-
+import type { AxiosRequestConfig, AxiosInstance, AxiosResponse, AxiosError } from 'axios';
+import type { RequestOptions, Result, UploadFileParams } from '../../../../types/axios';
+import type { CreateAxiosOptions } from './axiosTransform';
 import axios from 'axios';
+import qs from 'qs';
 import { AxiosCanceler } from './axiosCancel';
 import { isFunction } from '/@/utils/is';
-import { cloneDeep } from 'lodash-es';
-
-import type { RequestOptions, CreateAxiosOptions, Result, UploadFileParams } from './types';
-import { errorResult } from './const';
+import { cloneDeep, omit } from 'lodash-es';
 import { ContentTypeEnum } from '/@/enums/httpEnum';
-import qs from 'qs';
-import { RequestEnum } from '../../../enums/httpEnum';
+import { RequestEnum } from '/@/enums/httpEnum';
 
 export * from './axiosTransform';
 
@@ -93,7 +91,7 @@ export class VAxios {
 
       !ignoreCancel && axiosCanceler.addPending(config);
       if (requestInterceptors && isFunction(requestInterceptors)) {
-        config = requestInterceptors(config);
+        config = requestInterceptors(config, this.options);
       }
       return config;
     }, undefined);
@@ -138,8 +136,12 @@ export class VAxios {
         formData.append(key, params.data[key]);
       });
     }
-
     formData.append(params.name || 'file', params.file, params.filename);
+    const customParams = omit(params, 'file', 'filename', 'file');
+
+    Object.keys(customParams).forEach((key) => {
+      formData.append(key, customParams[key]);
+    });
 
     return this.axiosInstance.request<T>({
       ...config,
@@ -154,7 +156,7 @@ export class VAxios {
 
   // support form-data
   supportFormData(config: AxiosRequestConfig) {
-    const headers = this.options?.headers;
+    const headers = config.headers || this.options.headers;
     const contentType = headers?.['Content-Type'] || headers?.['content-type'];
 
     if (
@@ -167,7 +169,7 @@ export class VAxios {
 
     return {
       ...config,
-      data: qs.stringify(config.data),
+      data: qs.stringify(config.data, { arrayFormat: 'brackets' }),
     };
   }
 
@@ -188,7 +190,7 @@ export class VAxios {
   }
 
   request<T = any>(config: AxiosRequestConfig, options?: RequestOptions): Promise<T> {
-    let conf: AxiosRequestConfig = cloneDeep(config);
+    let conf: CreateAxiosOptions = cloneDeep(config);
     const transform = this.getTransform();
 
     const { requestOptions } = this.options;
@@ -199,6 +201,7 @@ export class VAxios {
     if (beforeRequestHook && isFunction(beforeRequestHook)) {
       conf = beforeRequestHook(conf, opt);
     }
+    conf.requestOptions = opt;
 
     conf = this.supportFormData(conf);
 
@@ -207,17 +210,23 @@ export class VAxios {
         .request<any, AxiosResponse<Result>>(conf)
         .then((res: AxiosResponse<Result>) => {
           if (transformRequestHook && isFunction(transformRequestHook)) {
-            const ret = transformRequestHook(res, opt);
-            ret !== errorResult ? resolve(ret) : reject(new Error('request error!'));
+            try {
+              const ret = transformRequestHook(res, opt);
+              resolve(ret);
+            } catch (err) {
+              reject(err || new Error('request error!'));
+            }
             return;
           }
-          console.log('res', res);
-          resolve((res as unknown) as Promise<T>);
+          resolve(res as unknown as Promise<T>);
         })
-        .catch((e: Error) => {
+        .catch((e: Error | AxiosError) => {
           if (requestCatchHook && isFunction(requestCatchHook)) {
-            reject(requestCatchHook(e));
+            reject(requestCatchHook(e, opt));
             return;
+          }
+          if (axios.isAxiosError(e)) {
+            // rewrite error message from axios in here
           }
           reject(e);
         });

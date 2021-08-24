@@ -8,36 +8,29 @@
 <script lang="ts">
   import type { PropType } from 'vue';
   import type { BasicColumn } from '../types/table';
-
   import { defineComponent, computed } from 'vue';
-
-  import { createAsyncComponent } from '/@/utils/factory/createAsyncComponent';
+  import BasicHelp from '/@/components/Basic/src/BasicHelp.vue';
+  import EditTableHeaderCell from './EditTableHeaderIcon.vue';
   import { useDesign } from '/@/hooks/web/useDesign';
+
   export default defineComponent({
     name: 'TableHeaderCell',
     components: {
-      EditTableHeaderCell: createAsyncComponent(() => import('./EditTableHeaderIcon.vue')),
-      BasicHelp: createAsyncComponent(() => import('/@/components/Basic/src/BasicHelp.vue')),
+      EditTableHeaderCell,
+      BasicHelp,
     },
     props: {
       column: {
         type: Object as PropType<BasicColumn>,
-        default: {},
+        default: () => ({}),
       },
     },
     setup(props) {
       const { prefixCls } = useDesign('basic-table-header-cell');
-      const getIsEdit = computed(() => {
-        return !!props.column?.edit;
-      });
 
-      const getTitle = computed(() => {
-        return props.column?.customTitle;
-      });
-
-      const getHelpMessage = computed(() => {
-        return props.column?.helpMessage;
-      });
+      const getIsEdit = computed(() => !!props.column?.edit);
+      const getTitle = computed(() => props.column?.customTitle);
+      const getHelpMessage = computed(() => props.column?.helpMessage);
 
       return { prefixCls, getIsEdit, getTitle, getHelpMessage };
     },

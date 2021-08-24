@@ -11,11 +11,11 @@
     collapsible
     :class="getSiderClass"
     :width="getMenuWidth"
-    :collapsed="getIsMobile ? false : getCollapsed"
+    :collapsed="getCollapsed"
     :collapsedWidth="getCollapsedWidth"
     :theme="getMenuTheme"
-    @collapse="onCollapseChange"
     @breakpoint="onBreakpointChange"
+    :trigger="getTrigger"
     v-bind="getTriggerAttr"
   >
     <template #trigger v-if="getShowTrigger">
@@ -26,7 +26,7 @@
   </Sider>
 </template>
 <script lang="ts">
-  import { computed, defineComponent, ref, unref, CSSProperties } from 'vue';
+  import { computed, defineComponent, ref, unref, CSSProperties, h } from 'vue';
 
   import { Layout } from 'ant-design-vue';
   import LayoutMenu from '../menu/index.vue';
@@ -56,6 +56,7 @@
         getMenuHidden,
         getMenuFixed,
         getIsMixMode,
+        toggleCollapsed,
       } = useMenuSetting();
 
       const { prefixCls } = useDesign('layout-sideBar');
@@ -66,7 +67,7 @@
 
       useDragLine(sideRef, dragBarRef);
 
-      const { getCollapsedWidth, onBreakpointChange, onCollapseChange } = useSiderEvent();
+      const { getCollapsedWidth, onBreakpointChange } = useSiderEvent();
 
       const getMode = computed(() => {
         return unref(getSplit) ? MenuModeEnum.INLINE : null;
@@ -90,19 +91,21 @@
         ];
       });
 
-      const getHiddenDomStyle = computed(
-        (): CSSProperties => {
-          const width = `${unref(getRealWidth)}px`;
-          return {
-            width: width,
-            overflow: 'hidden',
-            flex: `0 0 ${width}`,
-            maxWidth: width,
-            minWidth: width,
-            transition: 'all 0.2s',
-          };
-        }
-      );
+      const getHiddenDomStyle = computed((): CSSProperties => {
+        const width = `${unref(getRealWidth)}px`;
+        return {
+          width: width,
+          overflow: 'hidden',
+          flex: `0 0 ${width}`,
+          maxWidth: width,
+          minWidth: width,
+          transition: 'all 0.2s',
+        };
+      });
+
+      // 在此处使用计算量可能会导致sider异常
+      // andv 更新后，如果trigger插槽可用，则此处代码可废弃
+      const getTrigger = h(LayoutTrigger);
 
       return {
         prefixCls,
@@ -111,6 +114,7 @@
         getIsMobile,
         getHiddenDomStyle,
         getSiderClass,
+        getTrigger,
         getTriggerAttr,
         getCollapsedWidth,
         getMenuFixed,
@@ -121,8 +125,8 @@
         onBreakpointChange,
         getMode,
         getSplitType,
-        onCollapseChange,
         getShowTrigger,
+        toggleCollapsed,
       };
     },
   });
@@ -146,15 +150,15 @@
     }
 
     &.ant-layout-sider-dark {
-      background: @sider-dark-bg-color;
+      background-color: @sider-dark-bg-color;
 
       .ant-layout-sider-trigger {
         color: darken(@white, 25%);
-        background: @trigger-dark-bg-color;
+        background-color: @trigger-dark-bg-color;
 
         &:hover {
           color: @white;
-          background: @trigger-dark-hover-bg-color;
+          background-color: @trigger-dark-hover-bg-color;
         }
       }
     }

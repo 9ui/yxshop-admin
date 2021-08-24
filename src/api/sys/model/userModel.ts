@@ -6,13 +6,6 @@ export interface LoginParams {
   password: string;
 }
 
-/**
- * @description: Get user information
- */
-export interface GetUserInfoByTokenParams {
-  authorization: string;
-}
-
 export interface RoleInfo {
   roleName: string;
   value: string;
@@ -30,14 +23,16 @@ export interface LoginResultModel {
 /**
  * @description: Get user information return value
  */
-export interface GetUserInfoByUserIdModel {
+export interface GetUserInfoModel {
   roles: RoleInfo[];
   // 用户id
   userId: string | number;
   // 用户名
   username: string;
   // 真实名字
-  name: string;
+  realName: string;
+  // 头像
+  avatar: string;
   // 介绍
   desc?: string;
 }

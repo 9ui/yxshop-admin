@@ -1,5 +1,5 @@
 <template>
-  <div :class="prefixCls">
+  <div :class="[prefixCls, { fullscreen }]">
     <Upload
       name="file"
       multiple
@@ -8,14 +8,14 @@
       :showUploadList="false"
       accept=".jpg,.jpeg,.gif,.png,.webp"
     >
-      <a-button type="primary">
+      <a-button type="primary" v-bind="{ ...getButtonProps }">
         {{ t('component.upload.imgUpload') }}
       </a-button>
     </Upload>
   </div>
 </template>
 <script lang="ts">
-  import { defineComponent } from 'vue';
+  import { defineComponent, computed } from 'vue';
 
   import { Upload } from 'ant-design-vue';
   import { useDesign } from '/@/hooks/web/useDesign';
@@ -25,19 +25,36 @@
   export default defineComponent({
     name: 'TinymceImageUpload',
     components: { Upload },
+    props: {
+      fullscreen: {
+        type: Boolean,
+      },
+      disabled: {
+        type: Boolean,
+        default: false,
+      },
+    },
     emits: ['uploading', 'done', 'error'],
-    setup(_, { emit }) {
+    setup(props, { emit }) {
       let uploading = false;
 
       const { uploadUrl } = useGlobSetting();
       const { t } = useI18n();
       const { prefixCls } = useDesign('tinymce-img-upload');
+
+      const getButtonProps = computed(() => {
+        const { disabled } = props;
+        return {
+          disabled,
+        };
+      });
+
       function handleChange(info: Recordable) {
         const file = info.file;
         const status = file?.status;
-
         const url = file?.response?.url;
         const name = file?.name;
+
         if (status === 'uploading') {
           if (!uploading) {
             emit('uploading', name);
@@ -57,6 +74,7 @@
         handleChange,
         uploadUrl,
         t,
+        getButtonProps,
       };
     },
   });
@@ -69,5 +87,10 @@
     top: 4px;
     right: 10px;
     z-index: 20;
+
+    &.fullscreen {
+      position: fixed;
+      z-index: 10000;
+    }
   }
 </style>

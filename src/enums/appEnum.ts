@@ -8,17 +8,9 @@ export enum ContentEnum {
   FIXED = 'fixed',
 }
 
-// app current theme
-export enum ThemeModeEnum {
-  LIGHT = 'light-mode',
-  DARK = 'dark-mode',
-  SEMI_DARK = 'semi-dark-mode',
-}
-
 // menu theme enum
 export enum ThemeEnum {
   DARK = 'dark',
-
   LIGHT = 'light',
 }
 
@@ -26,6 +18,11 @@ export enum SettingButtonPositionEnum {
   AUTO = 'auto',
   HEADER = 'header',
   FIXED = 'fixed',
+}
+
+export enum SessionTimeoutProcessingEnum {
+  ROUTE_JUMP,
+  PAGE_COVERAGE,
 }
 
 /**
@@ -36,6 +33,8 @@ export enum PermissionModeEnum {
   ROLE = 'ROLE',
   // black
   BACK = 'BACK',
+  // route mapping
+  ROUTE_MAPPING = 'ROUTE_MAPPING',
 }
 
 //  Route switching animation

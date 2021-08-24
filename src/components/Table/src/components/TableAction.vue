@@ -1,16 +1,32 @@
 <template>
-  <div :class="[prefixCls, getAlign]">
+  <div :class="[prefixCls, getAlign]" @click="onCellClick">
     <template v-for="(action, index) in getActions" :key="`${index}-${action.label}`">
-      <PopConfirmButton v-bind="action">
-        <Icon :icon="action.icon" class="mr-1" v-if="action.icon" />
-        {{ action.label }}
+      <Tooltip v-if="action.tooltip" v-bind="getTooltip(action.tooltip)">
+        <PopConfirmButton v-bind="action">
+          <Icon :icon="action.icon" :class="{ 'mr-1': !!action.label }" v-if="action.icon" />
+          <template v-if="action.label">{{ action.label }}</template>
+        </PopConfirmButton>
+      </Tooltip>
+      <PopConfirmButton v-else v-bind="action">
+        <Icon :icon="action.icon" :class="{ 'mr-1': !!action.label }" v-if="action.icon" />
+        <template v-if="action.label">{{ action.label }}</template>
       </PopConfirmButton>
       <Divider
         type="vertical"
-        v-if="divider && index < getActions.length - (dropDownActions ? 0 : 1)"
+        class="action-divider"
+        v-if="
+          divider &&
+          index < getActions.length - (dropDownActions ? 0 : 1) &&
+          getDropdownList.length > 0
+        "
       />
     </template>
-    <Dropdown :trigger="['hover']" :dropMenuList="getDropList" v-if="dropDownActions">
+    <Dropdown
+      :trigger="['hover']"
+      :dropMenuList="getDropdownList"
+      popconfirm
+      v-if="dropDownActions && getDropdownList.length > 0"
+    >
       <slot name="more"></slot>
       <a-button type="link" size="small" v-if="!$slots.more">
         <MoreOutlined class="icon-more" />
@@ -19,20 +35,23 @@
   </div>
 </template>
 <script lang="ts">
-  import { defineComponent, PropType, computed } from 'vue';
+  import { defineComponent, PropType, computed, toRaw, unref } from 'vue';
+  import { MoreOutlined } from '@ant-design/icons-vue';
+  import { Divider, Tooltip, TooltipProps } from 'ant-design-vue';
   import Icon from '/@/components/Icon/index';
   import { ActionItem, TableActionType } from '/@/components/Table';
   import { PopConfirmButton } from '/@/components/Button';
-  import { Divider } from 'ant-design-vue';
   import { Dropdown } from '/@/components/Dropdown';
   import { useDesign } from '/@/hooks/web/useDesign';
-  import { MoreOutlined } from '@ant-design/icons-vue';
-  import { propTypes } from '/@/utils/propTypes';
   import { useTableContext } from '../hooks/useTableContext';
+  import { usePermission } from '/@/hooks/web/usePermission';
+  import { isBoolean, isFunction, isString } from '/@/utils/is';
+  import { propTypes } from '/@/utils/propTypes';
   import { ACTION_COLUMN_FLAG } from '../const';
+
   export default defineComponent({
     name: 'TableAction',
-    components: { Icon, PopConfirmButton, Divider, Dropdown, MoreOutlined },
+    components: { Icon, PopConfirmButton, Divider, Dropdown, MoreOutlined, Tooltip },
     props: {
       actions: {
         type: Array as PropType<ActionItem[]>,
@@ -44,6 +63,7 @@
       },
       divider: propTypes.bool.def(true),
       outside: propTypes.bool,
+      stopButtonPropagation: propTypes.bool.def(false),
     },
     setup(props) {
       const { prefixCls } = useDesign('basic-table-action');
@@ -52,44 +72,57 @@
         table = useTableContext();
       }
 
-      // const getSize = computed(() => {
-      //   const size = table?.getSize?.();
-      //   if (size === 'middle' || !size) {
-      //     return;
-      //   }
+      const { hasPermission } = usePermission();
+      function isIfShow(action: ActionItem): boolean {
+        const ifShow = action.ifShow;
 
-      //   if (size === 'default') {
-      //     return 'large';
-      //   }
-      //   return size;
-      // });
+        let isIfShow = true;
+
+        if (isBoolean(ifShow)) {
+          isIfShow = ifShow;
+        }
+        if (isFunction(ifShow)) {
+          isIfShow = ifShow(action);
+        }
+        return isIfShow;
+      }
 
       const getActions = computed(() => {
-        return (props.actions || []).map((action) => {
-          const { popConfirm } = action;
-          // const size = unref(getSize);
-          return {
-            type: 'link',
-            size: 'small',
-            // ...(size ? { size } : {}),
-            ...action,
-            ...(popConfirm || {}),
-            onConfirm: popConfirm?.confirm,
-            onCancel: popConfirm?.cancel,
-            enable: !!popConfirm,
-          };
-        });
+        return (toRaw(props.actions) || [])
+          .filter((action) => {
+            return hasPermission(action.auth) && isIfShow(action);
+          })
+          .map((action) => {
+            const { popConfirm } = action;
+            return {
+              getPopupContainer: () => unref((table as any)?.wrapRef.value) ?? document.body,
+              type: 'link',
+              size: 'small',
+              ...action,
+              ...(popConfirm || {}),
+              onConfirm: popConfirm?.confirm,
+              onCancel: popConfirm?.cancel,
+              enable: !!popConfirm,
+            };
+          });
       });
 
-      const getDropList = computed(() => {
-        return (props.dropDownActions || []).map((action, index) => {
-          const { label } = action;
-          return {
-            ...action,
-            text: label,
-            divider: index < props.dropDownActions.length - 1 ? props.divider : false,
-          };
-        });
+      const getDropdownList = computed((): any[] => {
+        return (toRaw(props.dropDownActions) || [])
+          .filter((action) => {
+            return hasPermission(action.auth) && isIfShow(action);
+          })
+          .map((action, index) => {
+            const { label, popConfirm } = action;
+            return {
+              ...action,
+              ...popConfirm,
+              onConfirm: popConfirm?.confirm,
+              onCancel: popConfirm?.cancel,
+              text: label,
+              divider: index < props.dropDownActions.length - 1 ? props.divider : false,
+            };
+          });
       });
 
       const getAlign = computed(() => {
@@ -98,7 +131,24 @@
         return actionColumn?.align ?? 'left';
       });
 
-      return { prefixCls, getActions, getDropList, getAlign };
+      function getTooltip(data: string | TooltipProps): TooltipProps {
+        return {
+          getPopupContainer: () => unref((table as any)?.wrapRef.value) ?? document.body,
+          placement: 'bottom',
+          ...(isString(data) ? { title: data } : data),
+        };
+      }
+
+      function onCellClick(e: MouseEvent) {
+        if (!props.stopButtonPropagation) return;
+        const path = e.composedPath() as HTMLElement[];
+        const isInButton = path.find((ele) => {
+          return ele.tagName?.toUpperCase() === 'BUTTON';
+        });
+        isInButton && e.stopPropagation();
+      }
+
+      return { prefixCls, getActions, getDropdownList, getAlign, onCellClick, getTooltip };
     },
   });
 </script>
@@ -108,6 +158,10 @@
   .@{prefix-cls} {
     display: flex;
     align-items: center;
+
+    .action-divider {
+      display: table;
+    }
 
     &.left {
       justify-content: flex-start;
@@ -127,6 +181,12 @@
 
       span {
         margin-left: 0 !important;
+      }
+    }
+
+    button.ant-btn-circle {
+      span {
+        margin: auto !important;
       }
     }
 

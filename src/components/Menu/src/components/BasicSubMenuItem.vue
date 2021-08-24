@@ -3,6 +3,7 @@
   <SubMenu
     v-if="menuHasChildren(item) && getShowMenu"
     :class="[theme]"
+    :key="`submenu-${item.path}`"
     popupClassName="app-top-menu-popup"
   >
     <template #title>
@@ -16,7 +17,6 @@
 </template>
 <script lang="ts">
   import type { Menu as MenuType } from '/@/router/types';
-
   import { defineComponent, computed } from 'vue';
   import { Menu } from 'ant-design-vue';
   import { useDesign } from '/@/hooks/web/useDesign';
@@ -36,11 +36,10 @@
     setup(props) {
       const { prefixCls } = useDesign('basic-menu-item');
 
-      const getShowMenu = computed(() => {
-        return !props.item.meta?.hideMenu;
-      });
+      const getShowMenu = computed(() => !props.item.meta?.hideMenu);
       function menuHasChildren(menuTreeItem: MenuType): boolean {
         return (
+          !menuTreeItem.meta?.hideChildrenInMenu &&
           Reflect.has(menuTreeItem, 'children') &&
           !!menuTreeItem.children &&
           menuTreeItem.children.length > 0
