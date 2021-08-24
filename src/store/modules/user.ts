@@ -90,11 +90,11 @@ export const useUserStore = defineStore({
         const { goHome = true, mode, ...loginParams } = params;
         const data = await loginApi(loginParams, mode);
         const { token } = data;
-
         // save token
         this.setToken(token);
         // get user info
         const userInfo = await this.getUserInfoAction();
+        console.log('userInfo', userInfo);
 
         const sessionTimeout = this.sessionTimeout;
         if (sessionTimeout) {
