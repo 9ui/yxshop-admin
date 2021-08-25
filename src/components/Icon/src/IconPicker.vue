@@ -154,8 +154,8 @@
         }
       );
 
-      function handlePageChange(page: number) {
-        setCurrentPage(page);
+      function handlePageChange(currPage: number) {
+        setCurrentPage(currPage);
       }
 
       function handleClick(icon: string) {
