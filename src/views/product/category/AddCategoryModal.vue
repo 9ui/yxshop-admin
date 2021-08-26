@@ -2,22 +2,14 @@
   <BasicModal
     v-bind="$attrs"
     destroyOnClose
+    cancelText="取消"
+    okText="保存"
     @register="register"
     title="新增商品分类"
     :helpMessage="['提示1', '提示2']"
     @visible-change="handleShow"
   >
-    <template #insertFooter>
-      <a-button type="primary" danger @click="setLines" :disabled="loading">点我更新内容</a-button>
-    </template>
-    <template v-if="loading">
-      <div class="empty-tips"> 加载中，稍等3秒…… </div>
-    </template>
-    <template v-if="!loading">
-      <ul>
-        <li v-for="index in lines" :key="index">加载完成{{ index }}！</li>
-      </ul>
-    </template>
+    表单
   </BasicModal>
 </template>
 <script lang="ts">
@@ -26,9 +18,8 @@
   export default defineComponent({
     components: { BasicModal },
     setup() {
-      const loading = ref(true);
       const lines = ref(10);
-      const [register, { setModalProps, redoModalHeight }] = useModalInner();
+      const [register, { redoModalHeight }] = useModalInner();
 
       watch(
         () => lines.value,
@@ -39,20 +30,9 @@
 
       function handleShow(visible: boolean) {
         if (visible) {
-          loading.value = true;
-          setModalProps({ loading: true, confirmLoading: true });
-          setTimeout(() => {
-            lines.value = Math.round(Math.random() * 30 + 5);
-            loading.value = false;
-            setModalProps({ loading: false, confirmLoading: false });
-          }, 3000);
         }
       }
-
-      function setLines() {
-        lines.value = Math.round(Math.random() * 20 + 10);
-      }
-      return { register, loading, handleShow, lines, setLines };
+      return { register, handleShow, lines };
     },
   });
 </script>
