@@ -1,7 +1,10 @@
 <template>
   <div class="p-4">
     <!-- table -->
-    <BasicTable @register="register" :pagination="{ pageSize: 20 }">
+    <BasicTable
+      @register="register"
+      :pagination="{ pageSize: 10, hideOnSinglePage: true, showQuickJumper: true }"
+    >
       <template #toolbar>
         <a-button type="primary" class="my-4" preIcon="lucide:plus" @click="openTargetModal()">
           新增分类</a-button
