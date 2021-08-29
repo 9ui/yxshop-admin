@@ -20,6 +20,7 @@ export function createTableColumns(): BasicColumn[] {
       width: 100,
       customRender: ({ record }) => {
         const { thumbUrl } = (record as FileItem) || {};
+        console.log('thumbUrl', thumbUrl);
         return thumbUrl && <ThumbUrl fileUrl={thumbUrl} />;
       },
     },
@@ -146,7 +147,6 @@ export function createPreviewActionColumn({
           onClick: handleDownload.bind(null, record),
         },
       ];
-
       return <TableAction actions={actions} outside={true} />;
     },
   };

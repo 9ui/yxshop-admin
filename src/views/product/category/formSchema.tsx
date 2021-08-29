@@ -25,6 +25,9 @@ export function getCategorySchemas(): FormSchema[] {
       },
       componentProps: {
         api: uploadApi,
+        multiple: false,
+        maxNumber: 1,
+        emptyHidePreview: true,
       },
     },
     {

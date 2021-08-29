@@ -76,13 +76,19 @@
         handleShow,
         schemas: getCategorySchemas(),
         closeModal,
-        handleSubmit: (values: any) => {
+        /**
+         * @description 提交表单
+         */
+        handleSubmit: async (values: any) => {
           setCategoryApi(values);
           getCategoryListApi({ currPage: 1, pageSize: 10 });
           createMessage.success('新增成功');
           reload();
           closeModal();
         },
+        /**
+         * @description 数据提交
+         */
         save() {
           const formEl = formElRef.value;
           if (!formEl) return;

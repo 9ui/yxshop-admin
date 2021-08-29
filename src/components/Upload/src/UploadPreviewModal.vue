@@ -1,6 +1,6 @@
 <template>
   <BasicModal
-    width="800px"
+    width="1200px"
     :title="t('component.upload.preview')"
     wrapClassName="upload-preview-modal"
     v-bind="$attrs"
@@ -61,14 +61,6 @@
         }
       }
 
-      // // 预览
-      // function handlePreview(record: PreviewFileItem) {
-      //   const { url = '' } = record;
-      //   createImgPreview({
-      //     imageList: [url],
-      //   });
-      // }
-
       // 下载
       function handleDownload(record: PreviewFileItem) {
         const { url = '' } = record;
@@ -81,7 +73,10 @@
         closeModal,
         fileListRef,
         columns: createPreviewColumns() as any[],
-        actionColumn: createPreviewActionColumn({ handleRemove, handleDownload }) as any,
+        actionColumn: createPreviewActionColumn({
+          handleRemove,
+          handleDownload,
+        }) as any,
       };
     },
   });

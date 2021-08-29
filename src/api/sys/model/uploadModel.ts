@@ -8,5 +8,5 @@ export interface ResultModel {
 export interface UploadApiResult {
   message: string;
   code: number;
-  url: ResultModel;
+  result: ResultModel;
 }

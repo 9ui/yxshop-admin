@@ -170,14 +170,6 @@
         emit('delete', record);
       }
 
-      // 预览
-      // function handlePreview(record: FileItem) {
-      //   const { thumbUrl = '' } = record;
-      //   createImgPreview({
-      //     imageList: [thumbUrl],
-      //   });
-      // }
-
       async function uploadApiByItem(item: FileItem) {
         const { api } = props;
         if (!api || !isFunction(api)) {
@@ -240,7 +232,6 @@
       //   点击保存
       function handleOk() {
         const { maxNumber } = props;
-
         if (fileListRef.value.length > maxNumber) {
           return createMessage.warning(t('component.upload.maxNumber', [maxNumber]));
         }
@@ -252,7 +243,7 @@
         for (const item of fileListRef.value) {
           const { status, responseData } = item;
           if (status === UploadResultStatus.SUCCESS && responseData) {
-            fileList.push(responseData.url);
+            fileList.push(responseData.result.url);
           }
         }
         // 存在一个上传成功的即可保存
