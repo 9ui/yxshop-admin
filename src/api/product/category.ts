@@ -16,11 +16,16 @@ enum Api {
 /**
  * @description: 新增/编辑分类
  */
-export const setCategory = (params: CategoryParam) =>
+export const setCategoryApi = (params: CategoryParam) =>
   defHttp.post({ url: Api.ADD_UPDATE_CATEGORY, params });
 
 /**
  * @description 获取商品列表分类
  */
-export const getCategyList = (params: CategoryListParam) =>
+export const getCategoryListApi = (params: CategoryListParam) =>
   defHttp.get<GetCategoryListResult>({ url: Api.GET_CATEGORY_LIST, params });
+
+/**
+ * @description 删除商品分类
+ */
+// export const deleteCateGory = ;

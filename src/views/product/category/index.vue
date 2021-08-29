@@ -1,36 +1,95 @@
 <template>
   <div class="p-4">
-    <BasicTable @register="register">
+    <!-- table -->
+    <BasicTable @register="register" :pagination="{ pageSize: 20 }">
       <template #toolbar>
-        <a-button type="primary" @click="expandAll">展开全部</a-button>
-        <a-button type="primary" @click="collapseAll">折叠全部</a-button>
-        <a-button type="primary" class="my-4" @click="openTargetModal()"> 新增分类</a-button>
+        <a-button type="primary" class="my-4" preIcon="lucide:plus" @click="openTargetModal()">
+          新增分类</a-button
+        >
+        <a-button type="ghost" class="my-4" preIcon="carbon:delete" @click="openTargetModal()">
+          删除分类</a-button
+        >
       </template>
     </BasicTable>
-    <AddCategoryModal @register="register1" :minHeight="100" />
+
+    <!-- modal -->
+    <BasicModal
+      v-bind="$attrs"
+      destroyOnClose
+      :showCancelBtn="false"
+      :showOkBtn="false"
+      @register="register1"
+      title="新增商品分类"
+      :schemas="schemas"
+      :helpMessage="['提示1', '提示2']"
+      @visible-change="handleShow"
+    >
+      <BasicForm
+        :labelWidth="100"
+        ref="formElRef"
+        :schemas="schemas"
+        :actionColOptions="{ span: 24 }"
+        :showSubmitButton="false"
+        :showResetButton="false"
+        @submit="handleSubmit"
+      />
+      <template #insertFooter>
+        <a-button type="link" @click="closeModal">取消</a-button>
+        <a-button type="primary" @click="save">保存</a-button>
+      </template>
+    </BasicModal>
   </div>
 </template>
 <script lang="ts">
-  import { defineComponent } from 'vue';
+  import { defineComponent, ref } from 'vue';
   import { BasicTable, useTable } from '/@/components/Table';
-  import { getCategyList } from '/@/api/product/category';
-  import { useModal } from '/@/components/Modal';
+  import { BasicModal, useModal } from '/@/components/Modal';
+  import { BasicForm, FormActionType } from '/@/components/Form';
+  import { useMessage } from '/@/hooks/web/useMessage';
+
+  import { getCategoryListApi, setCategoryApi } from '/@/api/product/category';
   import { getBasicColumns } from './tableData';
-  import AddCategoryModal from './AddCategoryModal.vue';
+  import { getCategorySchemas } from './formSchema';
   export default defineComponent({
-    components: { BasicTable, AddCategoryModal },
+    components: { BasicTable, BasicForm, BasicModal },
     setup() {
-      const [register1, { openModal: openTargetModal }] = useModal();
-      const [register, { expandAll, collapseAll }] = useTable({
+      const [register1, { openModal: openTargetModal, closeModal }] = useModal();
+      const { createMessage } = useMessage();
+      const formElRef = ref<Nullable<FormActionType>>(null);
+      const [register, { reload }] = useTable({
         title: '商品分类',
         isTreeTable: true,
         rowSelection: { type: 'checkbox' },
         titleHelpMessage: '这里可以添加备注文件',
         columns: getBasicColumns(),
-        api: getCategyList,
+        api: getCategoryListApi,
         rowKey: 'id',
       });
-      return { register, register1, expandAll, collapseAll, openTargetModal };
+      function handleShow(visible: boolean) {
+        if (visible) {
+        }
+      }
+      return {
+        formElRef,
+        register,
+        register1,
+        handleShow,
+        schemas: getCategorySchemas(),
+        closeModal,
+        handleSubmit: (values: any) => {
+          setCategoryApi(values);
+          getCategoryListApi({ currPage: 1, pageSize: 10 });
+          createMessage.success('新增成功');
+          reload();
+          closeModal();
+        },
+        save() {
+          const formEl = formElRef.value;
+          if (!formEl) return;
+          formEl.submit();
+        },
+        openTargetModal,
+      };
     },
   });
 </script>
