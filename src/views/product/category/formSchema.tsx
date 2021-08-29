@@ -37,15 +37,16 @@ export function getCategorySchemas(): FormSchema[] {
       colProps: {
         span: 20,
       },
+      defaultValue: 1,
       componentProps: {
         options: [
           {
             label: '显示',
-            value: '1',
+            value: 1,
           },
           {
             label: '隐藏',
-            value: '2',
+            value: 0,
           },
         ],
       },
@@ -57,7 +58,7 @@ export function getCategorySchemas(): FormSchema[] {
       colProps: {
         span: 20,
       },
-      defaultValue: '1',
+      defaultValue: 1,
     },
     {
       field: 'pid',
@@ -71,8 +72,8 @@ export function getCategorySchemas(): FormSchema[] {
         options: [
           {
             label: '顶级分类',
-            value: '1',
-            key: '1',
+            value: 0,
+            key: 1,
           },
         ],
       },
