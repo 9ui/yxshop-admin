@@ -11,12 +11,12 @@ import {
   UpdateGroupParams,
   DeleteGroupParams,
   AddGroupParams,
-} from './model/GroupModel';
+} from './model/groupModel';
 
 enum Api {
   ADD_GROUP = '/wxMaterialGroup/save',
   UPDATE_GROUP = '/wxMaterialGroup/editById',
-  GET_GROUP_LIST = '/wxStoreCategory/queryPage',
+  GET_GROUP_LIST = '/wxMaterialGroup/queryAll',
   DELETE_GROUP = '/wxMaterialGroup/deleteByIds',
 }
 

@@ -11,6 +11,7 @@ import { CategoryListParam, CategoryParam, GetCategoryListResult } from './model
 enum Api {
   ADD_UPDATE_CATEGORY = '/wxStoreCategory/saveOrUpdate',
   GET_CATEGORY_LIST = '/wxStoreCategory/queryPage',
+  GET_ALL_CATEGORY_LIST = '/wxStoreCategory/queryAllTopCats',
 }
 
 /**
@@ -20,11 +21,16 @@ export const setCategoryApi = (params: CategoryParam) =>
   defHttp.post({ url: Api.ADD_UPDATE_CATEGORY, params });
 
 /**
- * @description 获取商品列表分类
+ * @description 获取商品分类列表
  */
 export const getCategoryListApi = (params: CategoryListParam) =>
   defHttp.get<GetCategoryListResult>({ url: Api.GET_CATEGORY_LIST, params });
 
+/**
+ * @description 获取所有分类
+ * @returns
+ */
+export const getAllCategoryListApi = () => defHttp.get({ url: Api.GET_ALL_CATEGORY_LIST });
 /**
  * @description 删除商品分类
  */

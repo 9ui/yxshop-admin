@@ -1,6 +1,8 @@
 import { FormSchema } from '/@/components/Form';
 import { uploadApi } from '/@/api/sys/upload';
 
+import { getAllCategoryListApi } from '/@/api/product/category';
+
 export function getCategorySchemas(): FormSchema[] {
   return [
     {
@@ -62,20 +64,16 @@ export function getCategorySchemas(): FormSchema[] {
     },
     {
       field: 'pid',
-      component: 'Select',
+      component: 'ApiSelect',
       label: '上级分类',
       colProps: {
         span: 20,
       },
       componentProps: {
+        api: getAllCategoryListApi,
         placeholder: '请填写上级分类',
-        options: [
-          {
-            label: '顶级分类',
-            value: 0,
-            key: 1,
-          },
-        ],
+        labelField: 'cateName',
+        valueField: 'id',
       },
     },
   ];

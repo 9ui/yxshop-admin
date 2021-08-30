@@ -1,3 +1,9 @@
+/**
+ * @description 图片素材分组信息实例
+ * @author zzw
+ * @date 2021.08.30
+ * @email zzw1787044@gamil.com
+ */
 import { BasicFetchResult } from '/@/api/model/baseModel';
 
 export interface GroupItem {

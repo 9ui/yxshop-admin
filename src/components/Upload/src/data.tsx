@@ -20,7 +20,6 @@ export function createTableColumns(): BasicColumn[] {
       width: 100,
       customRender: ({ record }) => {
         const { thumbUrl } = (record as FileItem) || {};
-        console.log('thumbUrl', thumbUrl);
         return thumbUrl && <ThumbUrl fileUrl={thumbUrl} />;
       },
     },
