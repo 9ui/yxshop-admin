@@ -43,62 +43,64 @@
     </BasicModal>
   </div>
 </template>
-<script lang="ts">
-  import { defineComponent, ref } from 'vue';
+<script lang="ts" setup>
+  import { ref, toRaw } from 'vue';
   import { BasicTable, useTable } from '/@/components/Table';
   import { BasicModal, useModal } from '/@/components/Modal';
   import { BasicForm, FormActionType } from '/@/components/Form';
   import { useMessage } from '/@/hooks/web/useMessage';
-
-  import { getCategoryListApi, setCategoryApi } from '/@/api/product/category';
+  import { getCategoryListApi } from '/@/api/product/category';
   import { getBasicColumns } from './tableData';
   import { getCategorySchemas } from './formSchema';
-  export default defineComponent({
-    components: { BasicTable, BasicForm, BasicModal },
-    setup() {
-      const [register1, { openModal: openTargetModal, closeModal }] = useModal();
-      const { createMessage } = useMessage();
-      const formElRef = ref<Nullable<FormActionType>>(null);
-      const [register, { reload }] = useTable({
-        title: '商品分类',
-        isTreeTable: true,
-        rowSelection: { type: 'checkbox' },
-        titleHelpMessage: '这里可以添加备注文件',
-        columns: getBasicColumns(),
-        api: getCategoryListApi,
-        rowKey: 'id',
-      });
-      function handleShow(visible: boolean) {
-        if (visible) {
-        }
-      }
-      return {
-        formElRef,
-        register,
-        register1,
-        handleShow,
-        schemas: getCategorySchemas(),
-        closeModal,
-        /**
-         * @description 提交表单
-         */
-        handleSubmit: async (values: any) => {
-          setCategoryApi(values);
-          getCategoryListApi({ currPage: 1, pageSize: 10 });
-          createMessage.success('新增成功');
-          reload();
-          closeModal();
-        },
-        /**
-         * @description 数据提交
-         */
-        save() {
-          const formEl = formElRef.value;
-          if (!formEl) return;
-          formEl.submit();
-        },
-        openTargetModal,
-      };
-    },
+  import { useProductStore } from '/@/store/modules/product';
+  const [register1, { openModal: openTargetModal, closeModal }] = useModal();
+  const { createMessage } = useMessage();
+  const formElRef = ref<Nullable<FormActionType>>(null);
+  const schemas = getCategorySchemas();
+  const productStore = useProductStore();
+  // 定义表格
+  const [register, { reload }] = useTable({
+    title: '商品分类',
+    isTreeTable: true,
+    rowSelection: { type: 'checkbox' },
+    titleHelpMessage: '这里可以添加备注文件',
+    columns: getBasicColumns(),
+    api: getCategoryListApi,
+    rowKey: 'id',
   });
+  /**
+   * @description 打开弹框处理逻辑
+   */
+  const handleShow = (visible: boolean) => {
+    if (visible) {
+    }
+  };
+  /**
+   * @description 提交表单
+   */
+  const handleSubmit = async (values: any) => {
+    try {
+      await productStore.addCategory(values);
+      console.log(1111);
+      await productStore.fetchCategoryList(
+        toRaw({
+          currPage: 1,
+          pageSize: 10,
+        })
+      );
+      createMessage.success('新增成功');
+      reload();
+      closeModal();
+    } catch (error) {
+      // createMessage.error('网络异常，请检查您的网络连接是否正常!');
+    }
+  };
+  /**
+   * @description 数据提交
+   */
+  const save = () => {
+    const formEl = formElRef.value;
+    if (!formEl) return;
+    formEl.submit();
+  };
 </script>

@@ -94,8 +94,6 @@ export const useUserStore = defineStore({
         this.setToken(token);
         // get user info
         const userInfo = await this.getUserInfoAction();
-        console.log('userInfo', userInfo);
-
         const sessionTimeout = this.sessionTimeout;
         if (sessionTimeout) {
           this.setSessionTimeout(false);

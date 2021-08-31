@@ -25,6 +25,8 @@ export interface CategoryParam {
   sort?: number; // 排序 默认 0
 }
 
+export type CategoryList = CategoryItem[];
+
 export type CategoryListParam = BasicPageParams;
 
 export type GetCategoryListResult = BasicFetchResult<CategoryItem>;

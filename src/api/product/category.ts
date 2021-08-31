@@ -31,6 +31,7 @@ export const getCategoryListApi = (params: CategoryListParam) =>
  * @returns
  */
 export const getAllCategoryListApi = () => defHttp.get({ url: Api.GET_ALL_CATEGORY_LIST });
+
 /**
  * @description 删除商品分类
  */

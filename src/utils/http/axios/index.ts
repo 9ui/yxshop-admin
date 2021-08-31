@@ -60,7 +60,7 @@ const transform: AxiosTransform = {
           createMessage.error(message);
         }
       }
-      Promise.reject(new Error(message));
+      return Promise.reject(new Error(message));
       // return errorResult;
     }
 
