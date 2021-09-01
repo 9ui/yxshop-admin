@@ -1,7 +1,7 @@
 <template>
   <BasicModal
     width="800px"
-    :title="t('component.upload.upload')"
+    title="图片素材库"
     :okText="t('component.upload.save')"
     v-bind="$attrs"
     @register="register"
@@ -13,7 +13,16 @@
     :okButtonProps="getOkButtonProps"
     :cancelButtonProps="{ disabled: isUploadingRef }"
   >
-    <template #centerFooter>
+    <Tabs
+      :tab-position="mode"
+      :style="{ height: '200px' }"
+      @prevClick="callback"
+      @nextClick="callback"
+      v-model:activeKey="activeKey"
+    >
+      <TabPane v-for="i in 30" :key="i" :tab="`Tab-${i}`">Content of tab {{ i }}</TabPane>
+    </Tabs>
+    <template #centerFooter v-if="isSelectOnlineMeterila">
       <a-button
         @click="handleStartUpload"
         color="success"
@@ -25,9 +34,16 @@
     </template>
 
     <div class="upload-modal-toolbar">
-      <Alert :message="getHelpText" type="info" banner class="upload-modal-toolbar__text" />
+      <Alert
+        :message="getHelpText"
+        type="info"
+        banner
+        class="upload-modal-toolbar__text"
+        v-if="isSelectOnlineMeterila"
+      />
 
       <Upload
+        v-if="isSelectOnlineMeterila"
         :accept="getStringAccept"
         :multiple="multiple"
         :before-upload="beforeUpload"
@@ -38,12 +54,26 @@
         </a-button>
       </Upload>
     </div>
-    <FileList :dataSource="fileListRef" :columns="columns" :actionColumn="actionColumn" />
+    <FileList
+      v-if="isSelectOnlineMeterila"
+      :dataSource="fileListRef"
+      :columns="columns"
+      :actionColumn="actionColumn"
+    />
   </BasicModal>
 </template>
 <script lang="ts">
-  import { defineComponent, reactive, ref, toRefs, unref, computed, PropType } from 'vue';
-  import { Upload, Alert } from 'ant-design-vue';
+  import {
+    defineComponent,
+    reactive,
+    ref,
+    toRefs,
+    unref,
+    computed,
+    PropType,
+    onMounted,
+  } from 'vue';
+  import { Upload, Alert, Tabs, TabPane } from 'ant-design-vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
   //   import { BasicTable, useTable } from '/@/components/Table';
   // hooks
@@ -60,9 +90,9 @@
   import { warn } from '/@/utils/log';
   import FileList from './FileList.vue';
   import { useI18n } from '/@/hooks/web/useI18n';
-
+  import { useGroupStore } from '/@/store/modules/gruop';
   export default defineComponent({
-    components: { BasicModal, Upload, Alert, FileList },
+    components: { BasicModal, Upload, Alert, Tabs, TabPane, FileList },
     props: {
       ...basicProps,
       previewFileList: {
@@ -72,10 +102,31 @@
     },
     emits: ['change', 'register', 'delete'],
     setup(props, { emit }) {
+      // watch(
+      //   () => props.value,
+      //   (value) => {},
+      //   { immediate: true }
+      // );
       const state = reactive<{ fileList: FileItem[] }>({
         fileList: [],
       });
 
+      // 新增逻辑
+      const isSelectOnlineMeterila = ref(false);
+      const mode = ref('top');
+      const activeKey = ref(1);
+      const callback = (val: any) => {
+        console.log(val);
+      };
+
+      const gruopStore = useGroupStore();
+
+      onMounted(() => {
+        console.log(1111);
+        // 请求分组信息
+        const list = gruopStore.fetchGroupList();
+        console.log(list);
+      });
       //   是否正在上传
       const isUploadingRef = ref(false);
       const fileListRef = ref<FileItem[]>([]);
@@ -108,6 +159,8 @@
           disabled: isUploadingRef.value || fileListRef.value.length === 0 || !someSuccess,
         };
       });
+
+      const handleChange = () => {};
 
       const getUploadBtnText = computed(() => {
         const someError = fileListRef.value.some(
@@ -231,6 +284,7 @@
 
       //   点击保存
       function handleOk() {
+        // 判断是选择云端资源还是本地资源
         const { maxNumber } = props;
         if (fileListRef.value.length > maxNumber) {
           return createMessage.warning(t('component.upload.maxNumber', [maxNumber]));
@@ -279,8 +333,13 @@
         fileListRef,
         state,
         isUploadingRef,
+        isSelectOnlineMeterila,
         handleStartUpload,
         handleOk,
+        mode,
+        activeKey,
+        callback,
+        handleChange,
         handleCloseFunc,
         getIsSelectFile,
         getUploadBtnText,

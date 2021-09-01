@@ -81,7 +81,6 @@
   const handleSubmit = async (values: any) => {
     try {
       await productStore.addCategory(values);
-      console.log(1111);
       await productStore.fetchCategoryList(
         toRaw({
           currPage: 1,

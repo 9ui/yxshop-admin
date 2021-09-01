@@ -23,4 +23,6 @@ export interface DeleteGroupParams {
   id: string; // 分组数据主键 ID
 }
 
+export type GroupList = GroupItem[];
+
 export type GetGroupListResult = BasicFetchResult<GroupItem>;
