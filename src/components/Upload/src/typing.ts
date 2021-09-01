@@ -18,6 +18,11 @@ export interface FileItem {
   uuid: string;
 }
 
+export interface TabItem {
+  id: string;
+  name: string;
+}
+
 export interface PreviewFileItem {
   url: string;
   name: string;

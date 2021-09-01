@@ -7,6 +7,7 @@
 import { BasicFetchResult } from '/@/api/model/baseModel';
 
 export interface GroupItem {
+  id: string; // 文件id
   name: string; // 文件分组名称
 }
 

@@ -20,7 +20,9 @@
       @nextClick="callback"
       v-model:activeKey="activeKey"
     >
-      <TabPane v-for="i in 30" :key="i" :tab="`Tab-${i}`">Content of tab {{ i }}</TabPane>
+      <TabPane v-for="(tab, index) in state.tabLits" :key="index" :tab="`Tab-${tab.name}`"
+        >Content of tab {{ tab.name }}</TabPane
+      >
     </Tabs>
     <template #centerFooter v-if="isSelectOnlineMeterila">
       <a-button
@@ -80,7 +82,7 @@
   import { useUploadType } from './useUpload';
   import { useMessage } from '/@/hooks/web/useMessage';
   //   types
-  import { FileItem, UploadResultStatus } from './typing';
+  import { FileItem, UploadResultStatus, TabItem } from './typing';
   import { basicProps } from './props';
   import { createTableColumns, createActionColumn } from './data';
   // utils
@@ -91,6 +93,7 @@
   import FileList from './FileList.vue';
   import { useI18n } from '/@/hooks/web/useI18n';
   import { useGroupStore } from '/@/store/modules/gruop';
+
   export default defineComponent({
     components: { BasicModal, Upload, Alert, Tabs, TabPane, FileList },
     props: {
@@ -102,13 +105,9 @@
     },
     emits: ['change', 'register', 'delete'],
     setup(props, { emit }) {
-      // watch(
-      //   () => props.value,
-      //   (value) => {},
-      //   { immediate: true }
-      // );
-      const state = reactive<{ fileList: FileItem[] }>({
+      const state = reactive<{ fileList: FileItem[]; tabLits: TabItem[] }>({
         fileList: [],
+        tabLits: [],
       });
 
       // 新增逻辑
@@ -121,12 +120,12 @@
 
       const gruopStore = useGroupStore();
 
-      onMounted(() => {
-        console.log(1111);
+      onMounted(async () => {
         // 请求分组信息
-        const list = gruopStore.fetchGroupList();
-        console.log(list);
+        const list = await gruopStore.fetchGroupList();
+        console.log('list', list);
       });
+
       //   是否正在上传
       const isUploadingRef = ref(false);
       const fileListRef = ref<FileItem[]>([]);
