@@ -20,7 +20,7 @@
       @nextClick="callback"
       v-model:activeKey="activeKey"
     >
-      <TabPane v-for="(tab, index) in state.tabLits" :key="index" :tab="`Tab-${tab.name}`"
+      <TabPane v-for="(tab, index) in list" :key="index" :tab="`Tab-${tab.name}`"
         >Content of tab {{ tab.name }}</TabPane
       >
     </Tabs>
@@ -105,9 +105,8 @@
     },
     emits: ['change', 'register', 'delete'],
     setup(props, { emit }) {
-      const state = reactive<{ fileList: FileItem[]; tabLits: TabItem[] }>({
+      const state = reactive<{ fileList: FileItem[] }>({
         fileList: [],
-        tabLits: [],
       });
 
       // 新增逻辑
@@ -118,12 +117,13 @@
         console.log(val);
       };
 
-      const gruopStore = useGroupStore();
-
+      const groupStore = useGroupStore();
+      let list = ref<TabItem[]>([]);
       onMounted(async () => {
         // 请求分组信息
-        const list = await gruopStore.fetchGroupList();
-        console.log('list', list);
+        const { items } = await groupStore.fetchGroupList();
+        list.value = items;
+        console.log('items', items);
       });
 
       //   是否正在上传
@@ -331,6 +331,7 @@
         // registerTable,
         fileListRef,
         state,
+        list,
         isUploadingRef,
         isSelectOnlineMeterila,
         handleStartUpload,

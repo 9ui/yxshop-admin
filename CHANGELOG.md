@@ -1,3 +1,24 @@
+## 2.7.1 (2021-09-01)
+
+### Bug Fixes
+
+- 修改请求地址 ([23bd523](https://github.com/anncwb/vue-vben-admin/commit/23bd523394775f8f5a453adc21d957105b7ab8d4))
+- 分类数据请求逻辑调整 ([a2162ad](https://github.com/anncwb/vue-vben-admin/commit/a2162ad04b2b503d50154f90aaa5459b848734cd))
+
+### Features
+
+- 优化上传弹框 ([3137482](https://github.com/anncwb/vue-vben-admin/commit/3137482e33a56e385c84314b59b0734f70a30c95))
+- 修改项目结构 ([a12874d](https://github.com/anncwb/vue-vben-admin/commit/a12874d562ad7cc97035568b51e1f42f3845ef85))
+- 关闭设置入口以及新增商品管理模块 ([2c9a1ea](https://github.com/anncwb/vue-vben-admin/commit/2c9a1ea50aa173873e0ef4e8cf33128d1f8b080b))
+- 完善上传组件 ([82b3826](https://github.com/anncwb/vue-vben-admin/commit/82b38268cbf5f62e8c3585e9554b39a3d2bed3b1))
+- 完善分类管理逻辑 ([1088ea4](https://github.com/anncwb/vue-vben-admin/commit/1088ea43d124b287b879a43e39eb69dbf8ba015e))
+- 完善分组模块 ([1e36284](https://github.com/anncwb/vue-vben-admin/commit/1e3628403679e2ef4bf6d0da45a118ab266e5bdc))
+- 完善分页操作 ([ac4d264](https://github.com/anncwb/vue-vben-admin/commit/ac4d26449fa9f737302814f6a6b92535265125b9))
+- 完善商品分类模块 ([ad1b9a7](https://github.com/anncwb/vue-vben-admin/commit/ad1b9a78adb8ba24a207bb19d4ab4ff55b02ccb2))
+- 对接商品分类接口 ([0b9e2cf](https://github.com/anncwb/vue-vben-admin/commit/0b9e2cfa7df4e353dd8f578f7168f2d38f125cc6))
+- 对接登录接口 ([50823ec](https://github.com/anncwb/vue-vben-admin/commit/50823ec79f51eee6e2334381c64f81d1561683aa))
+- 新增分类弹框 ([af775a0](https://github.com/anncwb/vue-vben-admin/commit/af775a0319679695b5c2f2bbb43a7caa8b037e3a))
+
 ## [2.7.1](https://github.com/anncwb/vue-vben-admin/compare/v2.6.1...v2.7.1) (2021-08-16)
 
 ### Bug Fixes
