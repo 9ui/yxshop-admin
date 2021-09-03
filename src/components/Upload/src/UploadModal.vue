@@ -92,7 +92,7 @@
   import { warn } from '/@/utils/log';
   import FileList from './FileList.vue';
   import { useI18n } from '/@/hooks/web/useI18n';
-  import { useGroupStore } from '/@/store/modules/gruop';
+  import { getGroupListApi } from '/@/api/meterials/group';
 
   export default defineComponent({
     components: { BasicModal, Upload, Alert, Tabs, TabPane, FileList },
@@ -118,11 +118,9 @@
         console.log(val);
       };
 
-      const gruopStore = useGroupStore();
-
       onMounted(async () => {
         // 请求分组信息
-        const list = await gruopStore.fetchGroupList();
+        const list = await getGroupListApi();
         console.log('list', list);
       });
 

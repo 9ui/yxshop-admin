@@ -49,15 +49,13 @@
   import { BasicModal, useModal } from '/@/components/Modal';
   import { BasicForm, FormActionType } from '/@/components/Form';
   import { useMessage } from '/@/hooks/web/useMessage';
-  import { getCategoryListApi } from '/@/api/product/category';
+  import { getCategoryListApi, setCategoryApi } from '/@/api/product/category';
   import { getBasicColumns } from './tableData';
   import { getCategorySchemas } from './formSchema';
-  import { useProductStore } from '/@/store/modules/product';
   const [register1, { openModal: openTargetModal, closeModal }] = useModal();
   const { createMessage } = useMessage();
   const formElRef = ref<Nullable<FormActionType>>(null);
   const schemas = getCategorySchemas();
-  const productStore = useProductStore();
   // 定义表格
   const [register, { reload }] = useTable({
     title: '商品分类',
@@ -80,8 +78,8 @@
    */
   const handleSubmit = async (values: any) => {
     try {
-      await productStore.addCategory(values);
-      await productStore.fetchCategoryList(
+      await setCategoryApi(values);
+      await getCategoryListApi(
         toRaw({
           currPage: 1,
           pageSize: 10,
