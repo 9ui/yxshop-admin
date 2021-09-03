@@ -7,6 +7,7 @@
 
 import { defHttp } from '/@/utils/http/axios';
 import { CategoryListParam, CategoryParam, GetCategoryListResult } from './model/categoryModel';
+import { ErrorMessageMode } from '/#/axios';
 
 enum Api {
   ADD_UPDATE_CATEGORY = '/wxStoreCategory/saveOrUpdate',
@@ -17,20 +18,24 @@ enum Api {
 /**
  * @description: 新增/编辑分类
  */
-export const setCategoryApi = (params: CategoryParam) =>
-  defHttp.post({ url: Api.ADD_UPDATE_CATEGORY, params });
+export const setCategoryApi = (params: CategoryParam, mode: ErrorMessageMode = 'modal') =>
+  defHttp.post({ url: Api.ADD_UPDATE_CATEGORY, params }, { errorMessageMode: mode });
 
 /**
  * @description 获取商品分类列表
  */
-export const getCategoryListApi = (params: CategoryListParam) =>
-  defHttp.get<GetCategoryListResult>({ url: Api.GET_CATEGORY_LIST, params });
+export const getCategoryListApi = (params: CategoryListParam, mode: ErrorMessageMode = 'modal') =>
+  defHttp.get<GetCategoryListResult>(
+    { url: Api.GET_CATEGORY_LIST, params },
+    { errorMessageMode: mode }
+  );
 
 /**
  * @description 获取所有分类
  * @returns
  */
-export const getAllCategoryListApi = () => defHttp.get({ url: Api.GET_ALL_CATEGORY_LIST });
+export const getAllCategoryListApi = (mode: ErrorMessageMode = 'modal') =>
+  defHttp.get({ url: Api.GET_ALL_CATEGORY_LIST }, { errorMessageMode: mode });
 
 /**
  * @description 删除商品分类
