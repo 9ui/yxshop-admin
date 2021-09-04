@@ -80,7 +80,6 @@
   import { warn } from '/@/utils/log';
   import FileList from './FileList.vue';
   import { useI18n } from '/@/hooks/web/useI18n';
-
   // 请求分组列表
   import { getGroupListApi } from '/@/api/meterials/group';
   import { getMeterialsListApi } from '/@/api/meterials/meterials';
