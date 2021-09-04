@@ -7,6 +7,10 @@
 
 import { BasicPageParams, BasicFetchResult } from '/@/api/model/baseModel';
 
+type CategoryById = {
+  id: string; // 商品类别id
+};
+
 export interface CategoryItem {
   pid?: number; // 上级ID 只能选择一级分类或者为空
   cateName: string; // 分类名称
@@ -16,14 +20,7 @@ export interface CategoryItem {
   sort?: number; // 排序 默认 0
 }
 
-export interface CategoryParam {
-  pid?: number; // 上级ID 只能选择一级分类或者为空
-  cateName: string; // 分类名称
-  isShow?: boolean; // 是否展示 默认1 展示
-  pic?: string; // 图片地址
-  id?: string; // 传ID 编辑 / 不传 新增
-  sort?: number; // 排序 默认 0
-}
+export type CategoryDeleteByIds = CategoryById[];
 
 export type CategoryList = CategoryItem[];
 

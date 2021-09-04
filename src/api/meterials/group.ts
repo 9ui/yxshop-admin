@@ -7,10 +7,10 @@
 
 import { defHttp } from '/@/utils/http/axios';
 import {
-  GetGroupListResult,
   UpdateGroupParams,
   DeleteGroupParams,
   AddGroupParams,
+  GroupList,
 } from './model/groupModel';
 
 enum Api {
@@ -36,7 +36,7 @@ export const updateGroupApi = (params: UpdateGroupParams) =>
 /**
  * @description 获取所有分组
  */
-export const getGroupListApi = () => defHttp.get<GetGroupListResult>({ url: Api.GET_GROUP_LIST });
+export const getGroupListApi = () => defHttp.get<GroupList>({ url: Api.GET_GROUP_LIST });
 
 /**
  * @description 删除文件分组

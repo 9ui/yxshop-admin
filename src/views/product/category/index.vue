@@ -13,6 +13,26 @@
           删除分类</a-button
         >
       </template>
+      <template #action="{ record }">
+        <TableAction
+          :actions="[
+            {
+              icon: 'clarity:note-edit-line',
+              label: '编辑',
+              onClick: handleUpdate.bind(null, record),
+            },
+            {
+              icon: 'ant-design:delete-outlined',
+              label: '删除',
+              color: 'error',
+              popConfirm: {
+                title: '是否确认删除',
+                confirm: handleDelete.bind(null, record),
+              },
+            },
+          ]"
+        />
+      </template>
     </BasicTable>
 
     <!-- modal -->
@@ -45,19 +65,22 @@
 </template>
 <script lang="ts" setup>
   import { ref, toRaw } from 'vue';
-  import { BasicTable, useTable } from '/@/components/Table';
+  import { BasicTable, TableAction, useTable } from '/@/components/Table';
   import { BasicModal, useModal } from '/@/components/Modal';
   import { BasicForm, FormActionType } from '/@/components/Form';
   import { useMessage } from '/@/hooks/web/useMessage';
-  import { getCategoryListApi } from '/@/api/product/category';
+  import {
+    getCategoryListApi,
+    setCategoryApi,
+    deleteCateGoryByIdsApi,
+  } from '/@/api/product/category';
   import { getBasicColumns } from './tableData';
   import { getCategorySchemas } from './formSchema';
-  import { useProductStore } from '/@/store/modules/product';
+
   const [register1, { openModal: openTargetModal, closeModal }] = useModal();
   const { createMessage } = useMessage();
   const formElRef = ref<Nullable<FormActionType>>(null);
   const schemas = getCategorySchemas();
-  const productStore = useProductStore();
   // 定义表格
   const [register, { reload }] = useTable({
     title: '商品分类',
@@ -67,6 +90,17 @@
     columns: getBasicColumns(),
     api: getCategoryListApi,
     rowKey: 'id',
+    // useSearchForm: true,
+    showTableSetting: true,
+    bordered: true,
+    showIndexColumn: false,
+    actionColumn: {
+      width: 280,
+      title: '操作',
+      dataIndex: 'action',
+      slots: { customRender: 'action' },
+      fixed: undefined,
+    },
   });
   /**
    * @description 打开弹框处理逻辑
@@ -80,8 +114,8 @@
    */
   const handleSubmit = async (values: any) => {
     try {
-      await productStore.addCategory(values);
-      await productStore.fetchCategoryList(
+      await setCategoryApi(values);
+      await getCategoryListApi(
         toRaw({
           currPage: 1,
           pageSize: 10,
@@ -102,4 +136,10 @@
     if (!formEl) return;
     formEl.submit();
   };
+
+  async function handleDelete(record: Recordable) {
+    await deleteCateGoryByIdsApi([record.id]);
+    await reload();
+  }
+  const handleUpdate = () => {};
 </script>

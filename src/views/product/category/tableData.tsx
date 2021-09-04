@@ -19,6 +19,7 @@ export function getBasicColumns(): BasicColumn[] {
     },
     {
       title: '状态',
+      width: 200,
       dataIndex: 'isShow',
     },
     {

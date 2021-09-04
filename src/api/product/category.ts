@@ -6,18 +6,24 @@
  */
 
 import { defHttp } from '/@/utils/http/axios';
-import { CategoryListParam, CategoryParam, GetCategoryListResult } from './model/categoryModel';
+import {
+  CategoryListParam,
+  CategoryItem,
+  GetCategoryListResult,
+  CategoryDeleteByIds,
+} from './model/categoryModel';
 
 enum Api {
   ADD_UPDATE_CATEGORY = '/wxStoreCategory/saveOrUpdate',
   GET_CATEGORY_LIST = '/wxStoreCategory/queryPage',
   GET_ALL_CATEGORY_LIST = '/wxStoreCategory/queryAllTopCats',
+  DELETE_CATEGOEY = '/wxStoreCategory/deleteByIds',
 }
 
 /**
  * @description: 新增/编辑分类
  */
-export const setCategoryApi = (params: CategoryParam) =>
+export const setCategoryApi = (params: CategoryItem) =>
   defHttp.post({ url: Api.ADD_UPDATE_CATEGORY, params });
 
 /**
@@ -35,4 +41,5 @@ export const getAllCategoryListApi = () => defHttp.get({ url: Api.GET_ALL_CATEGO
 /**
  * @description 删除商品分类
  */
-// export const deleteCateGory = ;
+export const deleteCateGoryByIdsApi = (params: CategoryDeleteByIds) =>
+  defHttp.post({ url: Api.DELETE_CATEGOEY, params });
