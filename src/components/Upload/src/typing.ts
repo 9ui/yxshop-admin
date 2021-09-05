@@ -23,6 +23,12 @@ export interface TabItem {
   name: string;
 }
 
+export interface ImgItem {
+  id: string;
+  groupId: string;
+  url: string;
+}
+
 export interface PreviewFileItem {
   url: string;
   name: string;

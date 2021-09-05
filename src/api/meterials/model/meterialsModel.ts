@@ -12,7 +12,7 @@ export interface MeterialsItem {
   createTime: string;
   createId: number;
   type: number;
-  groupId: number;
+  groupId: string;
   name: string;
   url: string;
   updateTime: string;
@@ -23,6 +23,8 @@ export interface DeleteMeterialsParams {
   id: string; // 分组数据主键 ID
 }
 
-export type MeterialsListParam = BasicPageParams;
+export type MeterialsListParam = BasicPageParams & {
+  groupId?: string;
+};
 
 export type GetMeterialsListResult = BasicFetchResult<MeterialsItem>;

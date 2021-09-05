@@ -17,6 +17,7 @@ enum Api {
   ADD_GROUP = '/wxMaterialGroup/save',
   UPDATE_GROUP = '/wxMaterialGroup/editById',
   GET_GROUP_LIST = '/wxMaterialGroup/queryAll',
+  // 文件分组删除
   DELETE_GROUP = '/wxMaterialGroup/deleteByIds',
 }
 

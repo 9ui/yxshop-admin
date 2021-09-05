@@ -15,9 +15,13 @@ import {
 import { ErrorMessageMode } from '/#/axios';
 
 enum Api {
+  // 新增/编辑分类(分类)
   ADD_UPDATE_CATEGORY = '/wxStoreCategory/saveOrUpdate',
+  // 分页查询分类(分类)
   GET_CATEGORY_LIST = '/wxStoreCategory/queryPage',
+  // 查询所有一级分类(分类【新增编辑时使用】)
   GET_ALL_CATEGORY_LIST = '/wxStoreCategory/queryAllTopCats',
+  // 分类删除(分类)
   DELETE_CATEGOEY = '/wxStoreCategory/deleteByIds',
 }
 

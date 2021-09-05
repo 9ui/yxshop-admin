@@ -12,16 +12,23 @@ import {
   MeterialsListParam,
 } from './model/meterialsModel';
 
+import { ErrorMessageMode } from '/#/axios';
+
 enum Api {
-  GET_METERIALS_LIST = '/wxStoreCategory/queryPage',
+  // 分页查询分类(分类)
+  GET_METERIALS_LIST = '/wxMaterial/queryPage',
+
   DELETE_METERIALS = '/wxMaterialGroup/deleteByIds',
 }
 
 /**
  * @description 获取所有素材
  */
-export const getMeterialsListApi = (params: MeterialsListParam) =>
-  defHttp.get<GetMeterialsListResult>({ url: Api.GET_METERIALS_LIST, params });
+export const getMeterialsListApi = (params: MeterialsListParam, mode: ErrorMessageMode = 'modal') =>
+  defHttp.get<GetMeterialsListResult>(
+    { url: Api.GET_METERIALS_LIST, params },
+    { errorMessageMode: mode }
+  );
 
 /**
  * @description 删除素材

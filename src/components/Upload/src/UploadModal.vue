@@ -19,8 +19,15 @@
       @prevClick="callback"
       @nextClick="callback"
       v-model:activeKey="activeKey"
+      @change="handleChange"
     >
-      <TabPane v-for="(tab, index) in tabList" :key="index" :tab="tab.name">{{ tab.id }}</TabPane>
+      <TabPane v-for="tab in state.tabList" :key="tab.id" :tab="tab.name">
+        <Row>
+          <Col :span="2" v-for="img in state.imgList" :key="img.id">
+            <Image :width="200" :src="img.url" />
+          </Col>
+        </Row>
+      </TabPane>
     </Tabs>
     <template #centerFooter v-if="isSelectOnlineMeterila">
       <a-button
@@ -63,14 +70,23 @@
   </BasicModal>
 </template>
 <script lang="ts">
-  import { defineComponent, ref, toRefs, unref, computed, PropType, onMounted } from 'vue';
-  import { Upload, Alert, Tabs, TabPane } from 'ant-design-vue';
+  import {
+    defineComponent,
+    ref,
+    reactive,
+    toRefs,
+    unref,
+    computed,
+    PropType,
+    onMounted,
+  } from 'vue';
+  import { Upload, Alert, Tabs, TabPane, Row, Col, Image } from 'ant-design-vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
   // hooks
   import { useUploadType } from './useUpload';
   import { useMessage } from '/@/hooks/web/useMessage';
   //   types
-  import { FileItem, UploadResultStatus } from './typing';
+  import { FileItem, UploadResultStatus, TabItem, ImgItem } from './typing';
   import { basicProps } from './props';
   import { createTableColumns, createActionColumn } from './data';
   // utils
@@ -83,9 +99,9 @@
   // 请求分组列表
   import { getGroupListApi } from '/@/api/meterials/group';
   import { getMeterialsListApi } from '/@/api/meterials/meterials';
-  const tabList = ref({});
+
   export default defineComponent({
-    components: { BasicModal, Upload, Alert, Tabs, TabPane, FileList },
+    components: { BasicModal, Upload, Alert, Tabs, TabPane, FileList, Row, Col, Image },
     props: {
       ...basicProps,
       previewFileList: {
@@ -95,21 +111,30 @@
     },
     emits: ['change', 'register', 'delete'],
     setup(props, { emit }) {
-      // const state = reactive<{ tabItem: TabItem[] }>({
-      //   tabItem: [],
-      // });
+      const state = reactive<{ tabList: TabItem[]; imgList: ImgItem[] }>({
+        tabList: [],
+        imgList: [],
+      });
       // 新增逻辑
       const isSelectOnlineMeterila = ref(false);
       const mode = ref('top');
-      const activeKey = ref(1);
+      const activeKey = ref('');
       const callback = (val: any) => {
         console.log(val);
       };
 
       onMounted(async () => {
-        tabList.value = await getGroupListApi();
-        await getMeterialsListApi({ groupId: tabList?.value[0]?.id });
-        // 请求分组信息
+        state.tabList = await getGroupListApi();
+        activeKey.value = state.tabList[0]?.id;
+        const { items } = await getMeterialsListApi({
+          groupId: state.tabList[0]?.id,
+          pageSize: 10,
+          currPage: 1,
+        });
+        items.map((item) => {
+          state.imgList.push({ id: item.id, groupId: item.groupId, url: item.url });
+        });
+        console.log('imgList', state.imgList);
       });
 
       //   是否正在上传
@@ -145,7 +170,18 @@
         };
       });
 
-      const handleChange = () => {};
+      const handleChange = async (id: string) => {
+        state.imgList = [];
+        const { items } = await getMeterialsListApi({
+          groupId: id,
+          pageSize: 10,
+          currPage: 1,
+        });
+        items.map((item) => {
+          state.imgList.push({ id: item.id, groupId: item.groupId, url: item.url });
+        });
+        console.log('切换。。。', state.imgList);
+      };
 
       const getUploadBtnText = computed(() => {
         const someError = fileListRef.value.some(
@@ -322,7 +358,7 @@
         handleOk,
         mode,
         activeKey,
-        tabList,
+        state,
         callback,
         handleChange,
         handleCloseFunc,
