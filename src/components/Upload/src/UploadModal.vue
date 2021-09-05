@@ -80,7 +80,7 @@
     PropType,
     onMounted,
   } from 'vue';
-  import { Upload, Alert, Tabs, TabPane, Row, Col, Image } from 'ant-design-vue';
+  import { Upload, Alert, Tabs, Row, Col, Image } from 'ant-design-vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
   // hooks
   import { useUploadType } from './useUpload';
@@ -99,9 +99,10 @@
   // 请求分组列表
   import { getGroupListApi } from '/@/api/meterials/group';
   import { getMeterialsListApi } from '/@/api/meterials/meterials';
-
+  const TabPane = Tabs.TabPane;
   export default defineComponent({
     components: { BasicModal, Upload, Alert, Tabs, TabPane, FileList, Row, Col, Image },
+
     props: {
       ...basicProps,
       previewFileList: {
