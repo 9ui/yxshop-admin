@@ -2,6 +2,7 @@ import { FormSchema } from '/@/components/Form';
 import { uploadApi } from '/@/api/sys/upload';
 
 import { getAllCategoryListApi } from '/@/api/product/category';
+import { DescItem } from '/@/components/Description';
 
 export function getCategorySchemas(): FormSchema[] {
   return [
@@ -79,3 +80,25 @@ export function getCategorySchemas(): FormSchema[] {
     },
   ];
 }
+
+/**
+ * 查看详情表单
+ */
+export const retrieveDetailFormSchema: DescItem[] = [
+  {
+    field: 'cateName',
+    label: '分类名称',
+  },
+  {
+    field: 'pic',
+    label: '图片',
+  },
+  {
+    field: 'sort',
+    label: '排序',
+  },
+  {
+    field: 'pid',
+    label: '上级分类',
+  },
+];
