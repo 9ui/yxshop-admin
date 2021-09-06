@@ -1,7 +1,7 @@
 <template>
   <BasicDrawer v-bind="$attrs" @register="registerDrawer" title="查看详情" width="40%">
     <Description
-      size="large"
+      size="middle"
       title=""
       :bordered="true"
       :column="1"

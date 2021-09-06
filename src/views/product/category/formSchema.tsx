@@ -4,6 +4,9 @@ import { uploadApi } from '/@/api/sys/upload';
 import { getAllCategoryListApi } from '/@/api/product/category';
 import { DescItem } from '/@/components/Description';
 
+import { h } from 'vue';
+import { Image } from 'ant-design-vue';
+
 export function getCategorySchemas(): FormSchema[] {
   return [
     {
@@ -84,6 +87,7 @@ export function getCategorySchemas(): FormSchema[] {
 /**
  * 查看详情表单
  */
+const commonLinkRender = () => (src) => h(Image, { src });
 export const retrieveDetailFormSchema: DescItem[] = [
   {
     field: 'cateName',
@@ -92,6 +96,7 @@ export const retrieveDetailFormSchema: DescItem[] = [
   {
     field: 'pic',
     label: '图片',
+    render: commonLinkRender(),
   },
   {
     field: 'sort',

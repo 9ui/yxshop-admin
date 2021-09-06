@@ -75,6 +75,7 @@
           const values = await validate();
           setDrawerProps({ confirmLoading: true });
           if (recordId) {
+            Object.assign(values, { pic: values.pic[0] });
             await updateCategoryApi({ id: recordId, ...values });
             createMessage.success('更新成功');
           } else {
