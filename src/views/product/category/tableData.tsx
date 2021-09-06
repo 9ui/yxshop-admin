@@ -10,13 +10,9 @@ export function getBasicColumns(): BasicColumn[] {
       width: 200,
     },
     {
-      title: '姓名',
+      title: '分类名称',
       dataIndex: 'cateName',
       width: 150,
-      filters: [
-        { text: 'Male', value: 'male' },
-        { text: 'Female', value: 'female' },
-      ],
     },
     {
       title: '状态',
