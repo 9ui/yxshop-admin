@@ -23,12 +23,14 @@ enum Api {
   GET_ALL_CATEGORY_LIST = '/wxStoreCategory/queryAllTopCats',
   // 分类删除(分类)
   DELETE_CATEGOEY = '/wxStoreCategory/deleteByIds',
+  // 编辑查询分类信息(分类)
+  GET_CATEGORY_DETAIL = '/wxStoreCategory/getById',
 }
 
 /**
  * @description: 新增/编辑分类
  */
-export const setCategoryApi = (params: CategoryItem, mode: ErrorMessageMode = 'modal') =>
+export const saveCategoryApi = (params: CategoryItem, mode: ErrorMessageMode = 'modal') =>
   defHttp.post({ url: Api.ADD_UPDATE_CATEGORY, params }, { errorMessageMode: mode });
 
 /**
@@ -54,3 +56,18 @@ export const getAllCategoryListApi = (
  */
 export const deleteCateGoryByIdsApi = (params: CategoryDeleteByIds) =>
   defHttp.post({ url: Api.DELETE_CATEGOEY, params });
+
+/**
+ *  根据id查询分类详情
+ * @param id
+ * @param mode
+ * @returns
+ */
+export const getCategoryDetailApi = (id: string, mode: ErrorMessageMode = 'modal') =>
+  defHttp.get({ url: Api.GET_CATEGORY_DETAIL, params: { id: id } }, { errorMessageMode: mode });
+
+/**
+ * @description: 编辑分类
+ */
+export const updateCategoryApi = (params: CategoryItem, mode: ErrorMessageMode = 'modal') =>
+  defHttp.post({ url: Api.ADD_UPDATE_CATEGORY, params }, { errorMessageMode: mode });

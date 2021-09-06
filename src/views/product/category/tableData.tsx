@@ -1,5 +1,6 @@
 import { BasicColumn } from '/@/components/Table/src/types/table';
-
+import { h } from 'vue';
+import { Tag } from 'ant-design-vue';
 export function getBasicColumns(): BasicColumn[] {
   return [
     {
@@ -21,6 +22,21 @@ export function getBasicColumns(): BasicColumn[] {
       title: '状态',
       width: 200,
       dataIndex: 'isShow',
+      customRender: ({ record }) => {
+        const value = record.isShow;
+        let color, text;
+        switch (value) {
+          case 0:
+            color = 'default';
+            text = '禁用';
+            break;
+          case 1:
+            color = 'success';
+            text = '启用';
+            break;
+        }
+        return h(Tag, { color: color }, () => text);
+      },
     },
     {
       title: '排序',
