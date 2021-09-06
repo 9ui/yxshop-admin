@@ -94,6 +94,7 @@
     showTableSetting: true,
     bordered: true,
     showIndexColumn: false,
+    striped: false,
     actionColumn: {
       width: 280,
       title: '操作',
