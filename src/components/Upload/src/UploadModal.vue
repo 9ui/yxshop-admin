@@ -13,7 +13,7 @@
     :okButtonProps="getOkButtonProps"
     :cancelButtonProps="{ disabled: isUploadingRef }"
   >
-    <Tabs
+    <!-- <Tabs
       :tab-position="mode"
       :style="{ height: '200px' }"
       @prevClick="callback"
@@ -28,8 +28,8 @@
           </Col>
         </Row>
       </TabPane>
-    </Tabs>
-    <template #centerFooter v-if="isSelectOnlineMeterila">
+    </Tabs> -->
+    <template #centerFooter>
       <a-button
         @click="handleStartUpload"
         color="success"
@@ -41,16 +41,9 @@
     </template>
 
     <div class="upload-modal-toolbar">
-      <Alert
-        :message="getHelpText"
-        type="info"
-        banner
-        class="upload-modal-toolbar__text"
-        v-if="isSelectOnlineMeterila"
-      />
+      <Alert :message="getHelpText" type="info" banner class="upload-modal-toolbar__text" />
 
       <Upload
-        v-if="isSelectOnlineMeterila"
         :accept="getStringAccept"
         :multiple="multiple"
         :before-upload="beforeUpload"
@@ -61,32 +54,18 @@
         </a-button>
       </Upload>
     </div>
-    <FileList
-      v-if="isSelectOnlineMeterila"
-      :dataSource="fileListRef"
-      :columns="columns"
-      :actionColumn="actionColumn"
-    />
+    <FileList :dataSource="fileListRef" :columns="columns" :actionColumn="actionColumn" />
   </BasicModal>
 </template>
 <script lang="ts">
-  import {
-    defineComponent,
-    ref,
-    reactive,
-    toRefs,
-    unref,
-    computed,
-    PropType,
-    onMounted,
-  } from 'vue';
-  import { Upload, Alert, Tabs, Row, Col, Image } from 'ant-design-vue';
+  import { defineComponent, reactive, ref, toRefs, unref, computed, PropType } from 'vue';
+  import { Upload, Alert } from 'ant-design-vue';
   import { BasicModal, useModalInner } from '/@/components/Modal';
   // hooks
   import { useUploadType } from './useUpload';
   import { useMessage } from '/@/hooks/web/useMessage';
   //   types
-  import { FileItem, UploadResultStatus, TabItem, ImgItem } from './typing';
+  import { FileItem, UploadResultStatus } from './typing';
   import { basicProps } from './props';
   import { createTableColumns, createActionColumn } from './data';
   // utils
@@ -97,11 +76,11 @@
   import FileList from './FileList.vue';
   import { useI18n } from '/@/hooks/web/useI18n';
   // 请求分组列表
-  import { getGroupListApi } from '/@/api/meterials/group';
-  import { getMeterialsListApi } from '/@/api/meterials/meterials';
-  const TabPane = Tabs.TabPane;
+  // import { getGroupListApi } from '/@/api/meterials/group';
+  // import { getMeterialsListApi } from '/@/api/meterials/meterials';
+  // const TabPane = Tabs.TabPane;
   export default defineComponent({
-    components: { BasicModal, Upload, Alert, Tabs, TabPane, FileList, Row, Col, Image },
+    components: { BasicModal, Upload, Alert, FileList },
 
     props: {
       ...basicProps,
@@ -112,35 +91,35 @@
     },
     emits: ['change', 'register', 'delete'],
     setup(props, { emit }) {
-      const state = reactive<{ tabList: TabItem[]; imgList: ImgItem[] }>({
-        tabList: [],
-        imgList: [],
-      });
-      // 新增逻辑
-      const isSelectOnlineMeterila = ref(false);
-      const mode = ref('top');
-      const activeKey = ref('');
-      const callback = (val: any) => {
-        console.log(val);
-      };
+      // // 新增逻辑
+      // const isSelectOnlineMeterila = ref(false);
+      // const mode = ref('top');
+      // const activeKey = ref('');
+      // const callback = (val: any) => {
+      //   console.log(val);
+      // };
 
-      onMounted(async () => {
-        state.tabList = await getGroupListApi();
-        activeKey.value = state.tabList[0]?.id;
-        const { items } = await getMeterialsListApi({
-          groupId: state.tabList[0]?.id,
-          pageSize: 10,
-          currPage: 1,
-        });
-        items.map((item) => {
-          state.imgList.push({ id: item.id, groupId: item.groupId, url: item.url });
-        });
-        console.log('imgList', state.imgList);
-      });
+      // onMounted(async () => {
+      //   state.tabList = await getGroupListApi();
+      //   activeKey.value = state.tabList[0]?.id;
+      //   const { items } = await getMeterialsListApi({
+      //     groupId: state.tabList[0]?.id,
+      //     pageSize: 10,
+      //     currPage: 1,
+      //   });
+      //   items.map((item) => {
+      //     state.imgList.push({ id: item.id, groupId: item.groupId, url: item.url });
+      //   });
+      //   console.log('imgList', state.imgList);
+      // });
 
       //   是否正在上传
       const isUploadingRef = ref(false);
       const fileListRef = ref<FileItem[]>([]);
+
+      const state = reactive<{ fileList: FileItem[] }>({
+        fileList: [],
+      });
       const { accept, helpText, maxNumber, maxSize } = toRefs(props);
 
       const { t } = useI18n();
@@ -171,18 +150,18 @@
         };
       });
 
-      const handleChange = async (id: string) => {
-        state.imgList = [];
-        const { items } = await getMeterialsListApi({
-          groupId: id,
-          pageSize: 10,
-          currPage: 1,
-        });
-        items.map((item) => {
-          state.imgList.push({ id: item.id, groupId: item.groupId, url: item.url });
-        });
-        console.log('切换。。。', state.imgList);
-      };
+      // const handleChange = async (id: string) => {
+      //   state.imgList = [];
+      //   const { items } = await getMeterialsListApi({
+      //     groupId: id,
+      //     pageSize: 10,
+      //     currPage: 1,
+      //   });
+      //   items.map((item) => {
+      //     state.imgList.push({ id: item.id, groupId: item.groupId, url: item.url });
+      //   });
+      //   console.log('切换。。。', state.imgList);
+      // };
 
       const getUploadBtnText = computed(() => {
         const someError = fileListRef.value.some(
@@ -354,14 +333,14 @@
         // registerTable,
         fileListRef,
         isUploadingRef,
-        isSelectOnlineMeterila,
+        // isSelectOnlineMeterila,
         handleStartUpload,
         handleOk,
-        mode,
-        activeKey,
+        // mode,
+        // activeKey,
         state,
-        callback,
-        handleChange,
+        // callback,
+        // handleChange,
         handleCloseFunc,
         getIsSelectFile,
         getUploadBtnText,

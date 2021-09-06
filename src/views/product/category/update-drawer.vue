@@ -78,6 +78,7 @@
             await updateCategoryApi({ id: recordId, ...values });
             createMessage.success('更新成功');
           } else {
+            Object.assign(values, { pic: values.pic[0] });
             await saveCategoryApi(values);
             createMessage.success('新增成功');
           }
